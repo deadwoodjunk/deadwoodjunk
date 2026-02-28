@@ -7,25 +7,24 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --blue-dark:    #0a3d6b;
-      --blue-main:    #1565c0;
-      --blue-light:   #1e88e5;
-      --blue-pale:    #e3f2fd;
-      --blue-bg:      #f0f7ff;
-      --white:        #ffffff;
-      --gray-100:     #f5f7fa;
-      --gray-300:     #cfd8dc;
-      --gray-600:     #546e7a;
-      --gray-800:     #263238;
-      --accent:       #00acc1;
-      --accent-light: #e0f7fa;
-      --green:        #2e7d32;
-      --green-light:  #e8f5e9;
-      --red:          #c62828;
-      --red-light:    #ffebee;
-      --shadow-sm:    0 2px 8px rgba(21,101,192,.12);
-      --shadow-md:    0 8px 32px rgba(21,101,192,.18);
-      --radius:       14px;
+      --blue-dark:   #0a3d6b;
+      --blue-main:   #1565c0;
+      --blue-light:  #1e88e5;
+      --blue-pale:   #e3f2fd;
+      --blue-bg:     #f0f7ff;
+      --white:       #ffffff;
+      --gray-300:    #cfd8dc;
+      --gray-600:    #546e7a;
+      --gray-800:    #263238;
+      --accent:      #00acc1;
+      --accent-light:#e0f7fa;
+      --green:       #2e7d32;
+      --green-light: #e8f5e9;
+      --orange:      #e65100;
+      --orange-light:#fff3e0;
+      --shadow-sm:   0 2px 8px rgba(21,101,192,.12);
+      --shadow-md:   0 8px 32px rgba(21,101,192,.18);
+      --radius:      14px;
     }
     html { scroll-behavior: smooth; }
     body {
@@ -34,6 +33,20 @@
       color: var(--gray-800);
       min-height: 100vh;
     }
+
+    /* ===== AI Status Banner ===== */
+    .ai-banner {
+      display: none;
+      background: linear-gradient(90deg, #fff3e0, #fff8e1);
+      border-bottom: 2px solid #ffb300;
+      padding: 10px 20px;
+      text-align: center;
+      font-size: .85rem;
+      color: #5d4037;
+    }
+    .ai-banner.visible { display: block; }
+    .ai-banner strong { color: var(--orange); }
+    .ai-banner a { color: var(--blue-main); font-weight: 700; }
 
     /* ===== Header ===== */
     header {
@@ -59,82 +72,11 @@
     .header-badge {
       background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28);
       border-radius: 20px; padding: 4px 11px; font-size: .7rem; font-weight: 700;
-      display: flex; align-items: center; gap: 5px; cursor: pointer;
-      transition: background .2s;
+      display: flex; align-items: center; gap: 5px;
     }
-    .header-badge:hover { background: rgba(255,255,255,.25); }
-    .ai-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: #69f0ae; animation: pulse 1.8s infinite;
-    }
-    .ai-dot.off { background: #ef5350; animation: none; }
+    .ai-dot { width: 7px; height: 7px; border-radius: 50%; background: #69f0ae; animation: pulse 1.8s infinite; }
+    .ai-dot.off { background: #ffb300; animation: none; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
-
-    /* ===== API Key Modal ===== */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,.55);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 1000; padding: 16px;
-      opacity: 0; pointer-events: none; transition: opacity .25s;
-    }
-    .modal-overlay.show { opacity: 1; pointer-events: all; }
-    .modal {
-      background: var(--white); border-radius: var(--radius);
-      padding: 28px 24px; max-width: 480px; width: 100%;
-      box-shadow: 0 20px 60px rgba(0,0,0,.25);
-      transform: translateY(16px); transition: transform .25s;
-    }
-    .modal-overlay.show .modal { transform: translateY(0); }
-    .modal-title {
-      font-size: 1.1rem; font-weight: 800; color: var(--blue-dark);
-      margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
-    }
-    .modal-desc {
-      font-size: .83rem; color: var(--gray-600); line-height: 1.7;
-      margin-bottom: 18px;
-    }
-    .modal-desc a { color: var(--blue-main); text-decoration: none; }
-    .modal-desc a:hover { text-decoration: underline; }
-    .modal-input-wrap { position: relative; margin-bottom: 10px; }
-    .modal-input {
-      width: 100%; padding: 13px 44px 13px 14px;
-      border: 2px solid var(--gray-300); border-radius: 10px;
-      font-size: .92rem; outline: none; color: var(--gray-800);
-      font-family: 'Courier New', monospace;
-      transition: border-color .2s;
-    }
-    .modal-input:focus { border-color: var(--blue-main); }
-    .modal-eye {
-      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-      background: none; border: none; cursor: pointer; font-size: 1.1rem;
-      color: var(--gray-600); padding: 4px;
-    }
-    .modal-note {
-      font-size: .76rem; color: var(--gray-600);
-      display: flex; align-items: flex-start; gap: 5px;
-      margin-bottom: 18px; line-height: 1.55;
-    }
-    .modal-btns { display: flex; gap: 10px; }
-    .btn-primary {
-      flex: 1; padding: 12px; border: none; border-radius: 10px;
-      background: var(--blue-main); color: var(--white);
-      font-size: .95rem; font-weight: 700; cursor: pointer;
-      transition: background .2s;
-    }
-    .btn-primary:hover { background: var(--blue-dark); }
-    .btn-secondary {
-      padding: 12px 18px; border: 2px solid var(--gray-300); border-radius: 10px;
-      background: var(--white); color: var(--gray-600);
-      font-size: .92rem; font-weight: 600; cursor: pointer;
-      transition: border-color .2s;
-    }
-    .btn-secondary:hover { border-color: var(--blue-main); color: var(--blue-main); }
-    .key-status {
-      font-size: .8rem; padding: 8px 12px; border-radius: 8px;
-      margin-bottom: 14px; display: none;
-    }
-    .key-status.ok  { background: var(--green-light); color: var(--green); display: flex; align-items:center; gap:6px; }
-    .key-status.err { background: var(--red-light);   color: var(--red);   display: flex; align-items:center; gap:6px; }
 
     /* ===== Hero ===== */
     .hero {
@@ -145,7 +87,6 @@
     .hero-heading { font-size: clamp(1.45rem, 4.5vw, 2.1rem); font-weight: 800; line-height: 1.3; margin-bottom: 8px; }
     .hero-desc { font-size: .88rem; opacity: .8; margin-bottom: 28px; }
 
-    /* Search */
     .search-wrap { max-width: 640px; margin: 0 auto; }
     .search-row { display: flex; gap: 8px; position: relative; }
     .search-input {
@@ -172,17 +113,6 @@
     .search-btn:hover:not(:disabled) { background: #0097a7; transform: translateY(-1px); }
     .search-btn:disabled { opacity: .55; cursor: not-allowed; }
 
-    /* API key required notice */
-    .api-notice {
-      margin-top: 12px; font-size: .78rem;
-      background: rgba(255,255,255,.12); border-radius: 10px;
-      padding: 10px 14px; display: flex; align-items: center; gap: 8px;
-      cursor: pointer; transition: background .2s;
-    }
-    .api-notice:hover { background: rgba(255,255,255,.2); }
-    .api-notice.set { background: rgba(105,240,174,.15); }
-
-    /* Hint chips */
     .hint-row { margin-top: 12px; display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; }
     .hint-chip {
       background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22);
@@ -216,7 +146,7 @@
       font-size: 1.4rem; flex-shrink: 0;
     }
     .ai-card-term { font-size: 1.2rem; font-weight: 800; }
-    .ai-card-cat  {
+    .ai-card-cat {
       display: inline-block; margin-top: 4px;
       font-size: .7rem; font-weight: 700; padding: 2px 10px;
       background: rgba(255,255,255,.2); border-radius: 20px;
@@ -235,9 +165,18 @@
 
     .ai-error {
       display: none; align-items: center; gap: 8px;
-      padding: 18px 20px; color: var(--red);
-      background: var(--red-light); font-size: .88rem;
+      padding: 18px 20px; color: #c62828;
+      background: #ffebee; font-size: .88rem;
     }
+
+    /* AI無効時のメッセージ */
+    .ai-disabled-msg {
+      display: none; padding: 20px;
+      background: var(--orange-light);
+      border-left: 4px solid #ffb300;
+    }
+    .ai-disabled-msg h4 { color: var(--orange); margin-bottom: 8px; font-size: .95rem; }
+    .ai-disabled-msg p { font-size: .85rem; line-height: 1.7; color: #5d4037; }
 
     .ai-body { padding: 18px 20px; display: none; }
     .ai-sec { margin-bottom: 16px; }
@@ -268,7 +207,6 @@
     }
     .related-chip:hover { background: #c8e6c9; transform: translateY(-1px); }
 
-    /* cursor blink */
     .cursor {
       display: inline-block; width: 2px; height: 1em;
       background: var(--blue-main); vertical-align: text-bottom;
@@ -294,6 +232,23 @@
     }
     .filter-btn:hover  { border-color: var(--blue-light); color: var(--blue-main); }
     .filter-btn.active { background: var(--blue-main); border-color: var(--blue-main); color: var(--white); }
+
+    /* 検索フィルタ入力欄 */
+    .sample-search-wrap {
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .sample-search-input {
+      width: 100%; padding: 10px 14px 10px 38px;
+      border: 2px solid var(--gray-300); border-radius: 10px;
+      font-size: .88rem; outline: none; background: var(--white);
+      transition: border-color .2s;
+    }
+    .sample-search-input:focus { border-color: var(--blue-light); }
+    .sample-search-icon {
+      position: absolute; left: 12px; top: 50%;
+      transform: translateY(-50%); font-size: .95rem; pointer-events: none;
+    }
 
     .result-count { font-size: .83rem; color: var(--gray-600); margin-bottom: 16px; }
     .result-count strong { color: var(--blue-main); }
@@ -340,8 +295,8 @@
     .cat-clinical  { background:#fff3e0; color:#e65100; }
     .cat-molecule  { background:#fce4ec; color:#c62828; }
     .cat-regulatory{ background:#f3e5f5; color:#6a1b9a; }
-    .cat-ai-icon   { background:#e8eaf6; }
-    .cat-drug-icon { background:#e8f5e9; }
+    .cat-ai-icon        { background:#e8eaf6; }
+    .cat-drug-icon      { background:#e8f5e9; }
     .cat-clinical-icon  { background:#fff3e0; }
     .cat-molecule-icon  { background:#fce4ec; }
     .cat-regulatory-icon{ background:#f3e5f5; }
@@ -361,29 +316,11 @@
 </head>
 <body>
 
-<!-- ===== API Key Modal ===== -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <div class="modal-title">🔑 OpenAI APIキーを入力</div>
-    <p class="modal-desc">
-      AIによる用語解説を使うには、OpenAI の APIキーが必要です。<br>
-      キーは <strong>このブラウザにのみ保存</strong>され、外部に送信されません。<br><br>
-      キーの取得: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a>
-    </p>
-    <div class="key-status" id="keyStatus"></div>
-    <div class="modal-input-wrap">
-      <input type="password" id="apiKeyInput" class="modal-input"
-        placeholder="sk-proj-..." autocomplete="off" spellcheck="false"/>
-      <button class="modal-eye" id="eyeBtn" title="表示/非表示">👁</button>
-    </div>
-    <p class="modal-note">
-      🔒 キーはお使いのブラウザのlocalStorageのみに保存されます。サーバーには送信されません。
-    </p>
-    <div class="modal-btns">
-      <button class="btn-primary" id="saveKeyBtn">保存して使う</button>
-      <button class="btn-secondary" id="cancelKeyBtn">キャンセル</button>
-    </div>
-  </div>
+<!-- ===== AI Status Banner (AI無効時のみ表示) ===== -->
+<div class="ai-banner" id="aiBanner">
+  ⚠️ <strong>AIリアルタイム解説は現在準備中です。</strong>
+  サンプル用語集（下記）は今すぐご利用いただけます。
+  PCでGensparkにAPIキーを設定後、AI機能が自動的に有効になります。
 </div>
 
 <!-- ===== Header ===== -->
@@ -396,9 +333,9 @@
         <div class="header-sub">Pharma &amp; AI Glossary</div>
       </div>
     </div>
-    <div class="header-badge" id="headerBadge" onclick="openModal()">
-      <span class="ai-dot off" id="aiDot"></span>
-      <span id="badgeText">APIキー設定</span>
+    <div class="header-badge" id="headerBadge">
+      <span class="ai-dot" id="aiDot"></span>
+      <span id="badgeText">AI搭載</span>
     </div>
   </div>
 </header>
@@ -406,8 +343,8 @@
 <!-- ===== Hero ===== -->
 <section class="hero">
   <p class="hero-eyebrow">製薬 × AI 営業支援ツール</p>
-  <h1 class="hero-heading">どんな専門用語も<br>AIが即座に解説・営業トーク化</h1>
-  <p class="hero-desc">用語を入力するだけで「意味」と「営業トーク例」をAIがリアルタイム生成</p>
+  <h1 class="hero-heading" id="heroHeading">どんな専門用語も<br>AIが即座に解説・営業トーク化</h1>
+  <p class="hero-desc" id="heroDesc">用語を入力するだけで「意味」と「営業トーク例」をAIがリアルタイム生成</p>
 
   <div class="search-wrap">
     <div class="search-row">
@@ -415,15 +352,9 @@
       <input id="searchInput" class="search-input" type="text"
         placeholder="例：LLM、AlphaFold、バイオマーカー…" autocomplete="off"/>
       <button id="searchBtn" class="search-btn">
-        <span>✨</span><span>AI解説</span>
+        <span>✨</span><span id="searchBtnText">AI解説</span>
       </button>
     </div>
-
-    <div class="api-notice" id="apiNotice" onclick="openModal()">
-      <span id="noticeIcon">⚠️</span>
-      <span id="noticeText">APIキー未設定 — タップして設定</span>
-    </div>
-
     <div class="hint-row" id="hintRow">
       <span class="hint-chip" data-term="LLM">LLM</span>
       <span class="hint-chip" data-term="AlphaFold">AlphaFold</span>
@@ -441,7 +372,7 @@
   <!-- AI Result -->
   <div class="ai-area">
     <div class="ai-card" id="aiCard">
-      <div class="ai-card-header" id="aiCardHeader">
+      <div class="ai-card-header">
         <div class="ai-card-icon" id="aiCardIcon">🤖</div>
         <div>
           <div class="ai-card-term" id="aiCardTerm"></div>
@@ -453,6 +384,12 @@
       </div>
       <div class="ai-error" id="aiError">
         <span>⚠️</span><span id="aiErrorMsg"></span>
+      </div>
+      <!-- AI無効メッセージ -->
+      <div class="ai-disabled-msg" id="aiDisabledMsg">
+        <h4>🔧 AI解説機能は現在準備中です</h4>
+        <p>PCのGensparkプロジェクトページで <strong>「API Keys」→「Generate」→「Inject」</strong> を実行すると、AIリアルタイム解説が有効になります。<br>
+        それまでは下のサンプル用語集をご活用ください。</p>
       </div>
       <div class="ai-body" id="aiBody">
         <div class="ai-sec">
@@ -472,7 +409,8 @@
   </div>
 
   <!-- Sample cards -->
-  <div class="section-label">サンプル用語集</div>
+  <div class="section-label">サンプル用語集 <span style="font-size:.7rem;font-weight:400;color:var(--gray-600);margin-left:4px;">クリックでAI解説 / 検索で絞り込み</span></div>
+
   <div class="filter-bar" id="filterBar">
     <button class="filter-btn active" data-cat="all">すべて</button>
     <button class="filter-btn" data-cat="AI技術">🤖 AI技術</button>
@@ -481,205 +419,252 @@
     <button class="filter-btn" data-cat="分子・生物">🧬 分子・生物</button>
     <button class="filter-btn" data-cat="規制・薬事">📋 規制・薬事</button>
   </div>
+
+  <div class="sample-search-wrap">
+    <span class="sample-search-icon">🔍</span>
+    <input id="sampleSearch" class="sample-search-input" type="text" placeholder="用語を絞り込む…"/>
+  </div>
+
   <div class="result-count" id="resultCount"></div>
   <div class="cards-grid" id="cardsGrid"></div>
   <div class="no-result" id="noResult">
     <div class="icon">🔍</div>
     <h3>一致する用語が見つかりません</h3>
-    <p>上の検索欄からAIに質問してみてください</p>
+    <p style="font-size:.84rem;margin-top:6px;">上の検索ボタンでAIに質問できます（AI有効時）</p>
   </div>
 </main>
 
 <footer>
-  © 2025 PharmaAI 用語辞典 &nbsp;|&nbsp; Powered by OpenAI &nbsp;|&nbsp; 製薬×AI 営業支援ツール
+  © 2025 PharmaAI 用語辞典 &nbsp;|&nbsp; Powered by GPT &nbsp;|&nbsp; 製薬×AI 営業支援ツール
 </footer>
 
 <script>
 // ============================================================
-//  Sample data
+//  Sample data（拡充版 - 22用語）
 // ============================================================
 const SAMPLES = [
+  // ── AI技術 ──
   { term:"LLM（大規模言語モデル）", category:"AI技術", icon:"🤖",
     meaning:"Large Language Model の略。膨大なテキストを学習し、自然言語の生成・理解・要約などを行うAI。GPT-4・Claudeが代表例。製薬では論文解析・規制文書作成・メディカルライティングへの応用が進んでいる。",
     talk:"「弊社のLLMソリューションは治験プロトコル作成や有害事象レポートのドラフト生成に活用でき、メディカルライターの工数を最大60%削減した事例があります。申請書類作成の効率化にご関心はありませんか？」" },
   { term:"AlphaFold", category:"AI技術", icon:"🧠",
     meaning:"DeepMind開発のタンパク質立体構造予測AI。アミノ酸配列から3D構造を原子レベルで予測。創薬ターゲット探索と構造ベース設計の効率を劇的に向上させた。AlphaFold3では他分子との相互作用も予測可能。",
     talk:"「AlphaFoldによる構造予測でX線結晶解析に数ヶ月かかった標的解析を数日に短縮できます。フェーズ1候補化合物の設計精度向上にお役立てできますよ。」" },
+  { term:"生成AI（Generative AI）", category:"AI技術", icon:"✨",
+    meaning:"新しいコンテンツ（テキスト・画像・構造など）を生成するAI技術。製薬では分子構造生成・規制文書ドラフト・患者向け説明資料作成など多岐にわたる活用が進んでいる。",
+    talk:"「生成AIを活用することで、治験説明文書の複数言語版作成や有害事象サマリーの自動ドラフト生成が可能となり、申請準備工数を大幅に削減できます。」" },
+  { term:"機械学習（ML）", category:"AI技術", icon:"⚙️",
+    meaning:"データからパターンを学習して予測・分類を行うAI技術。創薬では化合物活性予測・患者層別化・有害事象シグナル検出など幅広く活用されており、開発成功確率の向上に貢献している。",
+    talk:"「MLを活用した患者層別化プラットフォームにより、適応患者の特定精度が30%向上し、治験リクルート期間を短縮した事例があります。貴社のバイオマーカー戦略にも応用できます。」" },
+  { term:"自然言語処理（NLP）", category:"AI技術", icon:"💬",
+    meaning:"コンピュータが人間の言語（テキスト・音声）を理解・処理する技術。電子カルテの非構造化データ解析、論文自動要約、規制文書レビューなど製薬業務の効率化に活用。",
+    talk:"「NLPによる電子カルテ解析で、適格患者の特定にかかる時間を従来の1/5に短縮した事例があります。リクルート効率化とデータクオリティ向上を同時に実現できます。」" },
+
+  // ── 創薬 ──
   { term:"構造ベース創薬（SBDD）", category:"創薬", icon:"🔬",
     meaning:"ターゲットタンパク質の3D構造情報をもとに最適な低分子化合物を設計する創薬アプローチ。AlphaFoldなどのAI構造予測と組み合わせることで効率が飛躍的に向上。",
     talk:"「構造ベース創薬にAIドッキングシミュレーションを組み合わせることで、リード最適化サイクルを1回あたり数週間短縮できます。貴社の標的タンパクで試算をご提示することも可能です。」" },
   { term:"低分子創薬", category:"創薬", icon:"💊",
     meaning:"分子量が比較的小さい化合物を医薬品として開発するアプローチ。経口投与が可能で製造コストも抑えやすい。AIによるde novo設計やバーチャルスクリーニングと相性がよく、活性化合物探索を大幅に効率化できる。",
     talk:"「低分子創薬の初期スクリーニングにAIバーチャルスクリーニングを活用することで、活性化合物候補を従来の1/10以下のコストで絞り込んだ事例があります。」" },
+  { term:"バーチャルスクリーニング", category:"創薬", icon:"🖥️",
+    meaning:"コンピュータ上で何百万もの化合物と標的タンパク質の相互作用を模擬評価し、活性が期待できる化合物を絞り込む技術。実験コスト・時間を大幅に削減する。",
+    talk:"「AIバーチャルスクリーニングにより1億以上の化合物ライブラリから有望候補を数日で絞り込み、ヒット率を5倍向上させた事例があります。スクリーニングコスト削減にお役立てできます。」" },
+  { term:"de novo分子設計", category:"創薬", icon:"🧪",
+    meaning:"既存化合物に縛られず、AIが標的タンパクに最適な全く新しい分子構造をゼロから生成する技術。生成AI（Generative AI）の応用で実用化が急速に進んでいる。",
+    talk:"「de novo設計AIにより、従来の化合物ライブラリに存在しなかった新規スキャフォールドの候補を生成し、特許空白領域でのリード探索を加速できます。」" },
+
+  // ── 臨床試験 ──
   { term:"分散型臨床試験（DCT）", category:"臨床試験", icon:"🏥",
     meaning:"遠隔モニタリング・電子同意・ウェアラブルデバイスを活用し、患者が来院しなくても参加できる臨床試験モデル。患者負担の軽減、リクルート加速、脱落率低下が主なメリット。",
     talk:"「DCT導入で患者リクルート期間が平均35%短縮され、地方在住患者の参加率が大幅向上した事例があります。プロトコル設計段階からDCT要素を取り入れることで開発期間全体を短縮できます。」" },
+  { term:"治験効率化", category:"臨床試験", icon:"⚡",
+    meaning:"AI・デジタル技術を活用して臨床試験の設計・実施・解析を効率化すること。電子化同意（eConsent）、リモートモニタリング、データ自動クリーニングなどが含まれる。",
+    talk:"「AIを活用した試験設計最適化とリモートモニタリングの組み合わせにより、プロトコル逸脱率30%削減・データクリーニング期間を50%短縮した事例があります。」" },
+  { term:"アダプティブデザイン", category:"臨床試験", icon:"🔄",
+    meaning:"事前に計画した規則に基づき、中間解析の結果を受けて用量・対象・エンドポイントなどを適応的に変更できる柔軟な試験デザイン。開発期間短縮と成功確率向上に寄与する。",
+    talk:"「アダプティブデザインを採用することで、有効性が低い用量群を早期に閉鎖し患者安全性を確保しながら、リソースを有望用量に集中投資できます。FDA・PMDAいずれも認めています。」" },
   { term:"RWD / RWE", category:"臨床試験", icon:"📈",
     meaning:"電子カルテ・レセプト・患者レジストリなどの実臨床データ（RWD）から得られるエビデンス（RWE）。承認後の有効性・安全性評価や外部対照群として活用が進んでいる。",
     talk:"「RWDを活用した外部対照群を採用することで、倫理的に難しい希少疾患の試験でも規制当局の承認を取得した事例があります。希少疾患開発のご支援ができます。」" },
+
+  // ── 分子・生物 ──
+  { term:"バイオマーカー", category:"分子・生物", icon:"🎯",
+    meaning:"疾患の存在・重症度・薬効を客観的に測定できる生物学的指標（タンパク、遺伝子変異、代謝物など）。コンパニオン診断・患者層別化・代替エンドポイントとして活用される。",
+    talk:"「バイオマーカー戦略を早期から組み込むことで、患者層別化により全体のNNT（治療必要数）を下げ、治験の成功確率を高められます。コンパニオン診断との同時開発についてもご提案できます。」" },
   { term:"マルチオミクス", category:"分子・生物", icon:"🔗",
     meaning:"ゲノミクス・トランスクリプトミクス・プロテオミクス・メタボロミクスなど複数のオミクスデータを統合解析するアプローチ。単一オミクスでは見えない疾患メカニズムや薬剤標的を明らかにできる。",
     talk:"「マルチオミクス統合解析プラットフォームを活用することで、疾患の全体像を多角的に把握し、新たなターゲットを効率的に絞り込めます。競合に差をつける探索戦略になります。」" },
+  { term:"バイオインフォマティクス", category:"分子・生物", icon:"💻",
+    meaning:"生物学的データ（ゲノム・タンパク質・代謝など）をコンピュータで解析する学問分野。ゲノム解読・タンパク質機能予測・薬剤標的探索など創薬のあらゆる段階で活用される。",
+    talk:"「バイオインフォマティクスによる網羅的ゲノム解析で、これまで見逃されていた新規創薬標的を発見した事例があります。貴社のパイプラインに革新的ターゲットをご提案できます。」" },
   { term:"ADMET予測", category:"分子・生物", icon:"⚗️",
     meaning:"吸収・分布・代謝・排泄・毒性をAIで予測する技術。化合物の薬物動態・安全性プロファイルを合成前に評価でき、前臨床段階の失敗を大幅に減らせる。",
     talk:"「in silico ADMET予測をリード最適化に組み込むことで、代謝安定性・hERG毒性に問題のある化合物を早期に除外し、前臨床試験への持ち込み化合物の品質を上げることができます。」" },
+
+  // ── 規制・薬事 ──
+  { term:"レギュラトリーサイエンス", category:"規制・薬事", icon:"⚖️",
+    meaning:"医薬品・医療機器の有効性・安全性・品質を評価するための科学的手法・基準を研究・開発する学問。AIや新技術を迅速に審査・承認体制に取り込むための基盤となる。",
+    talk:"「レギュラトリーサイエンスの最新動向を踏まえ、AI活用データをどう規制当局に提示するか、提出戦略の段階から一緒に考えることで承認確率を高められます。」" },
+  { term:"eCTD（電子申請資料）", category:"規制・薬事", icon:"📁",
+    meaning:"電子的コモン・テクニカル・ドキュメントの略。医薬品の規制申請に必要な全ての資料をICH形式で電子化・構造化したもの。日米欧で標準化されており、AIによる作成支援ツールが普及中。",
+    talk:"「eCTD作成にAIライティングツールを活用することで、モジュール2・3の初期ドラフト作成時間を従来比40%短縮した事例があります。申請準備の効率化をサポートします。」" },
   { term:"ファーマコビジランス（PV）", category:"規制・薬事", icon:"🛡️",
     meaning:"医薬品の安全性情報を収集・評価・報告する薬剤警戒活動。AIによるシグナル検出・MedDRAコーディング自動化が急速に普及している。",
     talk:"「AIを活用したファーマコビジランス自動化システムにより、有害事象レポートの処理速度を従来比3〜5倍に向上させつつ、規制当局への報告期限遵守率を大幅に改善した事例をご紹介できます。」" },
   { term:"希少疾患開発（オーファン）", category:"規制・薬事", icon:"🌿",
     meaning:"患者数が少ない希少疾患を対象とした医薬品開発。規制上の優遇措置が各国で整備されている。小規模試験でのエビデンス創出にAIやRWDの活用が特に有効。",
     talk:"「希少疾患では少ない患者数で有効性を示す必要があるため、AIによる患者特定・バイオマーカー戦略・RWD活用が競争優位につながります。希少疾患パイプラインの加速を一緒に考えましょう。」" },
+  { term:"医薬品規制調和（ICH）", category:"規制・薬事", icon:"🌐",
+    meaning:"日米欧の規制当局と製薬業界が医薬品開発・承認の基準を国際的に統一するための取り組み。ICHガイドラインはCTD形式・安全性・品質に関する国際標準として活用される。",
+    talk:"「ICHガイドライン対応の戦略を開発初期から設計することで、日米欧同時申請を見据えた効率的な開発計画が立てられます。グローバル展開を検討される際はぜひご相談ください。」" },
+  { term:"PMDAとの事前相談", category:"規制・薬事", icon:"🗂️",
+    meaning:"医薬品医療機器総合機構（PMDA）が承認申請前に開発企業と行う相談制度。治験相談・対面助言などがあり、開発初期から規制当局の見解を確認できる。",
+    talk:"「PMDA事前相談を活用することで、申請戦略の方向性を早期に確認でき、申請後の照会事項を最小化できます。AIデータ活用に関するPMDAの最新見解も共有できます。」" },
 ];
 
 // ============================================================
 //  Helpers
 // ============================================================
 const catClass = { "AI技術":"ai","創薬":"drug","臨床試験":"clinical","分子・生物":"molecule","規制・薬事":"regulatory" };
-function getCatCls(cat){ return catClass[cat] || "ai"; }
-function esc(s){ return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function highlight(text, q) {
-  if (!q) return esc(text);
-  const e = q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  return esc(text).replace(new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'), m=>`<mark>${m}</mark>`);
+function getCatCls(cat){ return catClass[cat]||"ai"; }
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function unesc(s){ return s.replace(/\\n/g,'\n').replace(/\\t/g,'\t').replace(/\\"/g,'"').replace(/\\\\/g,'\\'); }
+function highlight(text, kw) {
+  if (!kw) return esc(text);
+  const escaped_kw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return esc(text).replace(new RegExp(escaped_kw, 'gi'), m => `<mark>${m}</mark>`);
 }
 
 // ============================================================
-//  API Key management
+//  AI Status Check
 // ============================================================
-let apiKey = localStorage.getItem('pharma_openai_key') || '';
+let aiEnabled = false;
 
-function updateKeyUI() {
-  const dot    = document.getElementById('aiDot');
-  const badge  = document.getElementById('badgeText');
-  const notice = document.getElementById('apiNotice');
-  const noticeIcon = document.getElementById('noticeIcon');
-  const noticeTxt  = document.getElementById('noticeText');
-  if (apiKey) {
+async function checkAIStatus() {
+  try {
+    const r = await fetch('/api/ai-status');
+    const d = await r.json();
+    aiEnabled = d.aiEnabled;
+  } catch(e) {
+    aiEnabled = false;
+  }
+  updateAIStatusUI();
+}
+
+function updateAIStatusUI() {
+  const banner  = document.getElementById('aiBanner');
+  const dot     = document.getElementById('aiDot');
+  const badge   = document.getElementById('badgeText');
+  const btnText = document.getElementById('searchBtnText');
+  const heroH   = document.getElementById('heroHeading');
+  const heroD   = document.getElementById('heroDesc');
+
+  if (aiEnabled) {
+    banner.classList.remove('visible');
     dot.classList.remove('off');
     badge.textContent = 'AI有効';
-    notice.classList.add('set');
-    noticeIcon.textContent = '✅';
-    noticeTxt.textContent  = 'APIキー設定済み — タップして変更';
+    btnText.textContent = 'AI解説';
+    heroH.innerHTML = 'どんな専門用語も<br>AIが即座に解説・営業トーク化';
+    heroD.textContent = '用語を入力するだけで「意味」と「営業トーク例」をAIがリアルタイム生成';
   } else {
+    banner.classList.add('visible');
     dot.classList.add('off');
-    badge.textContent = 'APIキー設定';
-    notice.classList.remove('set');
-    noticeIcon.textContent = '⚠️';
-    noticeTxt.textContent  = 'APIキー未設定 — タップして設定';
+    badge.textContent = 'サンプルモード';
+    btnText.textContent = '検索';
+    heroH.innerHTML = '製薬・AI専門用語を<br>検索・確認できる営業支援ツール';
+    heroD.textContent = '22の専門用語を収録。PCでAPIキーを設定するとAIリアルタイム解説が有効になります';
   }
 }
-
-function openModal() {
-  const overlay = document.getElementById('modalOverlay');
-  const input   = document.getElementById('apiKeyInput');
-  const status  = document.getElementById('keyStatus');
-  input.value   = apiKey;
-  status.className = 'key-status';
-  status.style.display = 'none';
-  overlay.classList.add('show');
-  setTimeout(() => input.focus(), 300);
-}
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('show');
-}
-
-document.getElementById('saveKeyBtn').addEventListener('click', () => {
-  const val    = document.getElementById('apiKeyInput').value.trim();
-  const status = document.getElementById('keyStatus');
-  if (!val) {
-    status.className = 'key-status err';
-    status.textContent = '⚠️ APIキーを入力してください';
-    status.style.display = 'flex';
-    return;
-  }
-  if (!val.startsWith('sk-')) {
-    status.className = 'key-status err';
-    status.textContent = '⚠️ OpenAI APIキーは「sk-」で始まる文字列です';
-    status.style.display = 'flex';
-    return;
-  }
-  apiKey = val;
-  localStorage.setItem('pharma_openai_key', val);
-  status.className = 'key-status ok';
-  status.textContent = '✅ 保存しました！';
-  status.style.display = 'flex';
-  updateKeyUI();
-  setTimeout(closeModal, 900);
-});
-
-document.getElementById('cancelKeyBtn').addEventListener('click', closeModal);
-document.getElementById('modalOverlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
-});
-document.getElementById('eyeBtn').addEventListener('click', () => {
-  const inp = document.getElementById('apiKeyInput');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-});
 
 // ============================================================
-//  AI Search (browser → OpenAI API direct)
+//  AI Search  (/api/explain  ← サーバー経由)
 // ============================================================
-const SYSTEM_PROMPT = `あなたは製薬業界・創薬・臨床試験・AIテクノロジーに精通した日本人の専門家アドバイザーです。
-製薬会社の営業担当者が専門用語を素早く理解し商談で活用できるよう、わかりやすく・実践的に説明してください。
-
-必ず以下のJSON形式のみで返答してください（余分なテキスト・コードブロック不要）：
-{"meaning":"意味・解説（200字程度、専門知識がない人にも伝わる平易な表現）","talk":"営業トーク例（実際の商談で使えるセリフ形式、150字程度、具体的な数字や事例を含む）","category":"AI技術 / 創薬 / 臨床試験 / 分子・生物 / 規制・薬事 / その他 のいずれか","icon":"内容に合う絵文字1文字","related":["関連用語1","関連用語2","関連用語3"]}`;
-
 let currentController = null;
 
-async function doAISearch(term) {
+async function doSearch(term) {
   if (!term.trim()) return;
-  if (!apiKey) { openModal(); return; }
 
+  // AI無効時はサンプルから検索して表示
+  if (!aiEnabled) {
+    doSampleSearch(term);
+    return;
+  }
+
+  doAISearch(term);
+}
+
+function doSampleSearch(term) {
+  const q = term.trim().toLowerCase();
+  const match = SAMPLES.find(s =>
+    s.term.toLowerCase().includes(q) ||
+    s.meaning.toLowerCase().includes(q) ||
+    s.talk.toLowerCase().includes(q)
+  );
+
+  const card = document.getElementById('aiCard');
+  card.classList.add('visible');
+  document.getElementById('aiCardTerm').textContent = term.trim();
+  document.getElementById('aiLoading').style.display    = 'none';
+  document.getElementById('aiError').style.display     = 'none';
+  document.getElementById('aiBody').style.display      = 'none';
+
+  if (match) {
+    document.getElementById('aiCardIcon').textContent   = match.icon;
+    document.getElementById('aiCardCat').textContent    = match.category;
+    document.getElementById('aiMeaning').textContent    = match.meaning;
+    document.getElementById('aiTalk').textContent       = match.talk;
+    document.getElementById('aiRelatedSec').style.display = 'none';
+    document.getElementById('aiDisabledMsg').style.display = 'none';
+    document.getElementById('aiBody').style.display    = 'block';
+  } else {
+    document.getElementById('aiCardIcon').textContent  = '🔍';
+    document.getElementById('aiCardCat').textContent   = '検索結果';
+    document.getElementById('aiDisabledMsg').style.display = 'block';
+  }
+
+  card.scrollIntoView({ behavior:'smooth', block:'nearest' });
+
+  // サンプル一覧も絞り込む
+  document.getElementById('sampleSearch').value = term.trim();
+  renderCards();
+}
+
+async function doAISearch(term) {
   if (currentController) currentController.abort();
   currentController = new AbortController();
 
-  // UI: show card
-  const card   = document.getElementById('aiCard');
+  const card = document.getElementById('aiCard');
   card.classList.add('visible');
   document.getElementById('aiCardTerm').textContent = term.trim();
   document.getElementById('aiCardCat').textContent  = '解析中...';
   document.getElementById('aiCardIcon').textContent = '🤖';
-  document.getElementById('aiLoading').style.display = 'flex';
-  document.getElementById('aiBody').style.display   = 'none';
-  document.getElementById('aiError').style.display  = 'none';
+  document.getElementById('aiLoading').style.display     = 'flex';
+  document.getElementById('aiBody').style.display        = 'none';
+  document.getElementById('aiError').style.display       = 'none';
+  document.getElementById('aiDisabledMsg').style.display = 'none';
   card.scrollIntoView({ behavior:'smooth', block:'nearest' });
 
-  document.getElementById('searchBtn').disabled = true;
-  document.getElementById('searchBtn').innerHTML = '<span>⏳</span><span>生成中…</span>';
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span><span>生成中…</span>';
 
-  let buffer = '';
   const parsed = { meaning:'', talk:'', category:'', icon:'', related:[] };
+  let streamBuf = '';
 
-  // Show body immediately for streaming
   document.getElementById('aiLoading').style.display = 'none';
   document.getElementById('aiBody').style.display    = 'block';
   document.getElementById('aiMeaning').innerHTML = '<span class="cursor"></span>';
   document.getElementById('aiTalk').innerHTML    = '<span class="cursor"></span>';
 
   try {
-    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    const resp = await fetch('/api/explain', {
       method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role:'system', content: SYSTEM_PROMPT },
-          { role:'user',   content: `次の製薬・AI専門用語を解説してください：「${term.trim()}」` }
-        ],
-        stream: true,
-        temperature: 0.7,
-        max_tokens: 800
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ term: term.trim() }),
       signal: currentController.signal
     });
-
-    if (resp.status === 401) throw new Error('APIキーが無効です。正しいキーを設定してください。');
-    if (resp.status === 429) throw new Error('APIの利用制限に達しました。しばらく待ってから再試行してください。');
-    if (!resp.ok)            throw new Error(`APIエラー (${resp.status})`);
+    if (!resp.ok) throw new Error(`サーバーエラー (${resp.status})`);
 
     const reader  = resp.body.getReader();
     const decoder = new TextDecoder();
@@ -693,17 +678,26 @@ async function doAISearch(term) {
         if (!t || t === 'data: [DONE]') continue;
         if (t.startsWith('data: ')) {
           try {
-            const json    = JSON.parse(t.slice(6));
-            const content = json.choices?.[0]?.delta?.content;
-            if (content) {
-              buffer += content;
-              streamRender(buffer, parsed);
+            const json = JSON.parse(t.slice(6));
+            if (json.error) {
+              if (json.error === 'AI_DISABLED') {
+                // AI無効に切り替え
+                aiEnabled = false;
+                updateAIStatusUI();
+                document.getElementById('aiBody').style.display        = 'none';
+                document.getElementById('aiDisabledMsg').style.display = 'block';
+              } else {
+                throw new Error(json.error);
+              }
+              return;
             }
-          } catch {}
+            if (json.content) { streamBuf += json.content; }
+          } catch(e) { if(e.message !== 'parse') throw e; }
         }
       }
+      if (streamBuf) streamRender(streamBuf, parsed);
     }
-    finalRender(buffer, parsed);
+    finalRender(streamBuf, parsed);
 
   } catch(e) {
     if (e.name === 'AbortError') return;
@@ -711,20 +705,20 @@ async function doAISearch(term) {
     document.getElementById('aiError').style.display = 'flex';
     document.getElementById('aiErrorMsg').textContent = e.message || 'エラーが発生しました';
   } finally {
-    document.getElementById('searchBtn').disabled = false;
-    document.getElementById('searchBtn').innerHTML = '<span>✨</span><span>AI解説</span>';
+    btn.disabled = false;
+    btn.innerHTML = '<span>✨</span><span>AI解説</span>';
   }
 }
 
 function streamRender(buf, parsed) {
-  const mMatch = buf.match(/"meaning"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-  const tMatch = buf.match(/"talk"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-  const cMatch = buf.match(/"category"\s*:\s*"([^"]+)"/);
-  const iMatch = buf.match(/"icon"\s*:\s*"([^"]+)"/);
-  if (mMatch) { const t=unesc(mMatch[1]); if(t!==parsed.meaning){ parsed.meaning=t; document.getElementById('aiMeaning').innerHTML=t+'<span class="cursor"></span>'; } }
-  if (tMatch) { const t=unesc(tMatch[1]); if(t!==parsed.talk){   parsed.talk=t;    document.getElementById('aiTalk').innerHTML   =t+'<span class="cursor"></span>'; } }
-  if (cMatch && cMatch[1]!==parsed.category) { parsed.category=cMatch[1]; document.getElementById('aiCardCat').textContent=cMatch[1]; }
-  if (iMatch && iMatch[1]!==parsed.icon)     { parsed.icon=iMatch[1];     document.getElementById('aiCardIcon').textContent=iMatch[1]; }
+  const mM = buf.match(/"meaning"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  const tM = buf.match(/"talk"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  const cM = buf.match(/"category"\s*:\s*"([^"]+)"/);
+  const iM = buf.match(/"icon"\s*:\s*"([^"]+)"/);
+  if (mM) { const t=unesc(mM[1]); if(t!==parsed.meaning){ parsed.meaning=t; document.getElementById('aiMeaning').innerHTML=esc(t)+'<span class="cursor"></span>'; } }
+  if (tM) { const t=unesc(tM[1]); if(t!==parsed.talk){   parsed.talk=t;    document.getElementById('aiTalk').innerHTML   =esc(t)+'<span class="cursor"></span>'; } }
+  if (cM && cM[1]!==parsed.category) { parsed.category=cM[1]; document.getElementById('aiCardCat').textContent=cM[1]; }
+  if (iM && iM[1]!==parsed.icon)     { parsed.icon=iM[1];     document.getElementById('aiCardIcon').textContent=iM[1]; }
 }
 
 function finalRender(buf, parsed) {
@@ -746,32 +740,47 @@ function finalRender(buf, parsed) {
   }
 }
 
-function unesc(s){ return s.replace(/\\n/g,'\n').replace(/\\t/g,'\t').replace(/\\"/g,'"').replace(/\\\\/g,'\\'); }
-
 // ============================================================
 //  Sample cards
 // ============================================================
 let currentCat = 'all';
+let currentKeyword = '';
+
 function renderCards() {
   const grid  = document.getElementById('cardsGrid');
   const noRes = document.getElementById('noResult');
   const count = document.getElementById('resultCount');
-  const list  = SAMPLES.filter(i => currentCat==='all' || i.category===currentCat);
-  if (!list.length) { grid.innerHTML=''; noRes.style.display='block'; count.textContent=''; return; }
+  const kw    = currentKeyword.trim().toLowerCase();
+
+  let list = SAMPLES.filter(i => currentCat==='all' || i.category===currentCat);
+  if (kw) {
+    list = list.filter(i =>
+      i.term.toLowerCase().includes(kw) ||
+      i.meaning.toLowerCase().includes(kw) ||
+      i.talk.toLowerCase().includes(kw)
+    );
+  }
+
+  if (!list.length) {
+    grid.innerHTML='';
+    noRes.style.display='block';
+    count.textContent='';
+    return;
+  }
   noRes.style.display = 'none';
   count.innerHTML = `<strong>${list.length}</strong> 件表示`;
   grid.innerHTML = list.map(item => {
     const cc = getCatCls(item.category);
-    return `<div class="card">
+    return `<div class="card" data-term="${esc(item.term)}" style="cursor:pointer">
       <div class="card-header">
         <div class="card-icon cat-${cc}-icon">${item.icon}</div>
-        <div><div class="card-term">${esc(item.term)}</div><span class="card-cat cat-${cc}">${esc(item.category)}</span></div>
+        <div><div class="card-term">${highlight(item.term, kw)}</div><span class="card-cat cat-${cc}">${esc(item.category)}</span></div>
       </div>
       <div class="card-body">
         <div class="card-sec meaning">📖 意味・解説</div>
-        <p class="card-meaning">${esc(item.meaning)}</p>
+        <p class="card-meaning">${highlight(item.meaning, kw)}</p>
         <div class="card-sec talk">🗣 営業トーク例</div>
-        <div class="card-talk">${esc(item.talk)}</div>
+        <div class="card-talk">${highlight(item.talk, kw)}</div>
       </div>
     </div>`;
   }).join('');
@@ -780,19 +789,31 @@ function renderCards() {
 // ============================================================
 //  Events
 // ============================================================
-document.getElementById('searchBtn').addEventListener('click', () => doAISearch(document.getElementById('searchInput').value));
-document.getElementById('searchInput').addEventListener('keydown', e => { if(e.key==='Enter') doAISearch(e.target.value); });
+document.getElementById('searchBtn').addEventListener('click', () =>
+  doSearch(document.getElementById('searchInput').value));
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key==='Enter') doSearch(e.target.value);
+});
 document.getElementById('hintRow').addEventListener('click', e => {
   const c = e.target.closest('.hint-chip');
   if (!c) return;
   document.getElementById('searchInput').value = c.dataset.term;
-  doAISearch(c.dataset.term);
+  doSearch(c.dataset.term);
 });
 document.addEventListener('click', e => {
   const c = e.target.closest('.related-chip');
-  if (!c) return;
-  document.getElementById('searchInput').value = c.dataset.term;
-  doAISearch(c.dataset.term);
+  if (c) {
+    document.getElementById('searchInput').value = c.dataset.term;
+    doSearch(c.dataset.term);
+    return;
+  }
+  // カードクリックで検索
+  const card = e.target.closest('.card[data-term]');
+  if (card) {
+    const term = card.dataset.term;
+    document.getElementById('searchInput').value = term;
+    doSearch(term);
+  }
 });
 document.getElementById('filterBar').addEventListener('click', e => {
   const b = e.target.closest('.filter-btn');
@@ -802,13 +823,14 @@ document.getElementById('filterBar').addEventListener('click', e => {
   currentCat = b.dataset.cat;
   renderCards();
 });
+document.getElementById('sampleSearch').addEventListener('input', e => {
+  currentKeyword = e.target.value;
+  renderCards();
+});
 
-// ============================================================
-//  Init
-// ============================================================
-updateKeyUI();
+// Init
+checkAIStatus();
 renderCards();
-if (!apiKey) setTimeout(openModal, 600); // 初回は自動でモーダル表示
 </script>
 </body>
 </html>

@@ -26,11 +26,18 @@ const resolvedKey = (apiKey === '${GENSPARK_TOKEN}')
   ? (process.env.GENSPARK_TOKEN || process.env.OPENAI_API_KEY)
   : apiKey;
 
-const openai = new OpenAI({ apiKey: resolvedKey, baseURL });
+// APIキーが gsk- 形式かどうかチェック
+const isValidKeyFormat = resolvedKey && resolvedKey.startsWith('gsk-');
+let aiEnabled = isValidKeyFormat;
+
+const openai = isValidKeyFormat
+  ? new OpenAI({ apiKey: resolvedKey, baseURL })
+  : null;
 
 console.log(`✅ PharmaAI サーバー設定`);
-console.log(`   Base URL: ${baseURL}`);
-console.log(`   API Key : ${resolvedKey ? resolvedKey.slice(0,16)+'...' : '未設定'}`);
+console.log(`   Base URL : ${baseURL}`);
+console.log(`   API Key  : ${resolvedKey ? resolvedKey.slice(0,16)+'...' : '未設定'}`);
+console.log(`   AI機能   : ${aiEnabled ? '有効' : '⚠️ 無効（gsk-形式のAPIキーが必要）'}`);
 
 // ── ミドルウェア ────────────────────────────────────────────
 app.use(cors());
@@ -38,13 +45,32 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── ヘルスチェック ─────────────────────────────────────────
-app.get('/api/health', (req, res) => res.json({ ok: true, baseURL }));
+app.get('/api/health', (req, res) => res.json({
+  ok: true,
+  baseURL,
+  aiEnabled,
+  keyFormat: resolvedKey ? (isValidKeyFormat ? 'gsk-valid' : 'invalid-format') : 'missing'
+}));
+
+// ── AI ステータス確認 ──────────────────────────────────────
+app.get('/api/ai-status', (req, res) => res.json({ aiEnabled }));
 
 // ── AI 用語解説 API（ストリーミング） ──────────────────────
 app.post('/api/explain', async (req, res) => {
   const { term } = req.body;
   if (!term || !term.trim()) {
     return res.status(400).json({ error: '用語を入力してください' });
+  }
+
+  // AI無効時はエラーを返す
+  if (!aiEnabled || !openai) {
+    res.setHeader('Content-Type',  'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection',    'keep-alive');
+    res.flushHeaders();
+    res.write(`data: ${JSON.stringify({ error: 'AI_DISABLED' })}\n\n`);
+    res.end();
+    return;
   }
 
   const systemPrompt = `あなたは製薬業界・創薬・臨床試験・AIテクノロジーに精通した日本人の専門家アドバイザーです。
@@ -91,8 +117,13 @@ app.post('/api/explain', async (req, res) => {
 
   } catch (err) {
     console.error('OpenAI error:', err.message);
+    // 401エラーの場合はAIを無効化
+    if (err.status === 401) {
+      aiEnabled = false;
+      console.warn('⚠️ 401エラー: AI機能を無効化しました');
+    }
     const msg = err.status === 401
-      ? 'APIキーが無効です。設定を確認してください。'
+      ? 'AI_DISABLED'
       : `AI接続エラー: ${err.message}`;
     res.write(`data: ${JSON.stringify({ error: msg })}\n\n`);
     res.end();
