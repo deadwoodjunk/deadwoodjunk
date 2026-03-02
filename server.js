@@ -44,27 +44,39 @@ app.post('/api/explain', async (req, res) => {
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
 
+  // モデル優先順（429時は次のモデルにフォールバック）
+  const MODELS = ['gpt-3.5-turbo', 'gpt-4o-mini'];
+  let response = null;
+  let usedModel = MODELS[0];
+
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': `Bearer ${apiKey.trim()}`
-      },
-      body: JSON.stringify({
-        model:       'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user',   content: `次の製薬・AI専門用語を解説してください：「${term.trim()}」` }
-        ],
-        stream:      true,
-        temperature: 0.7,
-        max_tokens:  800
-      })
-    });
+    for (const model of MODELS) {
+      usedModel = model;
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'Authorization': `Bearer ${apiKey.trim()}`
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user',   content: `次の製薬・AI専門用語を解説してください：「${term.trim()}」` }
+          ],
+          stream:      true,
+          temperature: 0.7,
+          max_tokens:  600
+        })
+      });
+      // 429以外のエラーか成功ならループ終了
+      if (response.ok || response.status !== 429) break;
+      console.warn(`${model} → 429, trying next model...`);
+      // 少し待ってから次のモデルを試す
+      await new Promise(r => setTimeout(r, 1500));
+    }
 
     if (!response.ok) {
-      const errText = await response.text();
       let errMsg = 'AI接続エラーが発生しました';
       if (response.status === 401) errMsg = 'INVALID_KEY';
       else if (response.status === 429) errMsg = 'RATE_LIMIT';
