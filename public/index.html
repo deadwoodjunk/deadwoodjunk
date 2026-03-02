@@ -350,18 +350,42 @@
   <div class="modal">
     <div class="modal-logo">💊</div>
     <div class="modal-title">PharmaAI 用語辞典</div>
-    <div class="modal-sub">OpenAI APIキーを入力してAI解説を有効にします</div>
-    <label class="modal-label" for="modalKeyInput">🔑 OpenAI APIキー</label>
+    <div class="modal-sub">APIキーを入力してAI解説を有効にします</div>
+
+    <!-- プロバイダー選択タブ -->
+    <div style="display:flex;gap:8px;margin-bottom:18px;">
+      <button class="provider-tab active" id="tabGroq" data-provider="groq"
+        style="flex:1;padding:10px;border-radius:10px;border:2px solid #ff6b2b;background:#fff4ef;color:#d14a00;font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;">
+        🚀 Groq（無料・推奨）
+      </button>
+      <button class="provider-tab" id="tabOpenai" data-provider="openai"
+        style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--gray-300);background:var(--white);color:var(--gray-600);font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;">
+        🤖 OpenAI
+      </button>
+    </div>
+
+    <!-- Groq説明 -->
+    <div id="groqInfo" style="background:#fff4ef;border-radius:10px;padding:12px;margin-bottom:14px;font-size:.8rem;color:#7c3300;line-height:1.7;">
+      <strong>🎉 Groqは完全無料・登録のみでOK！</strong><br>
+      ① <a href="https://console.groq.com/keys" target="_blank" style="color:#d14a00;font-weight:700;">console.groq.com/keys</a> にアクセス<br>
+      ② Googleアカウントなどでサインアップ<br>
+      ③「Create API Key」→ <code style="background:#ffe0cc;padding:1px 5px;border-radius:4px;">gsk_...</code> をコピー
+    </div>
+    <!-- OpenAI説明 -->
+    <div id="openaiInfo" style="display:none;background:#e8f4ff;border-radius:10px;padding:12px;margin-bottom:14px;font-size:.8rem;color:#0d3c6e;line-height:1.7;">
+      <strong>💳 OpenAIは$5以上のチャージが必要です</strong><br>
+      ① <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#1565c0;font-weight:700;">platform.openai.com/api-keys</a> でキー取得<br>
+      ② Billing で $5以上チャージしてから使用してください<br>
+      ③ キー形式: <code style="background:#d0e8ff;padding:1px 5px;border-radius:4px;">sk-proj-...</code>
+    </div>
+
+    <label class="modal-label" for="modalKeyInput" id="modalKeyLabel">🔑 Groq APIキー</label>
     <div class="modal-input-wrap">
       <input id="modalKeyInput" class="modal-input" type="password"
-        placeholder="sk-proj-..." autocomplete="off" spellcheck="false"/>
+        placeholder="gsk_..." autocomplete="off" spellcheck="false"/>
       <button class="modal-eye" id="modalEye" type="button">👁</button>
     </div>
-    <div class="modal-hint">
-      キーは <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a> で取得できます。<br>
-      このデバイスのみに保存され、サーバーには送信されません。
-    </div>
-    <div class="modal-err" id="modalErr">キーの形式が正しくありません（sk- で始まる文字列）</div>
+    <div class="modal-err" id="modalErr">キーの形式が正しくありません</div>
     <button class="modal-btn" id="modalSaveBtn">✅ 保存してAI解説を開始</button>
     <button class="modal-skip" id="modalSkipBtn">スキップ（サンプルのみ閲覧）</button>
     <div class="modal-security">
@@ -571,12 +595,39 @@ function highlight(text, kw) {
 // ============================================================
 //  APIキー管理
 // ============================================================
-const STORAGE_KEY = 'pharmaai_openai_key';
+const STORAGE_KEY          = 'pharmaai_openai_key';
+const STORAGE_PROVIDER_KEY = 'pharmaai_provider';
 
-function getStoredKey() { return localStorage.getItem(STORAGE_KEY) || ''; }
-function saveKey(k)     { localStorage.setItem(STORAGE_KEY, k); }
-function clearKey()     { localStorage.removeItem(STORAGE_KEY); }
-function hasValidKey()  { const k = getStoredKey(); return k && k.startsWith('sk-'); }
+function getStoredKey()      { return localStorage.getItem(STORAGE_KEY) || ''; }
+function getStoredProvider() { return localStorage.getItem(STORAGE_PROVIDER_KEY) || 'groq'; }
+function saveKey(k, prov)    { localStorage.setItem(STORAGE_KEY, k); localStorage.setItem(STORAGE_PROVIDER_KEY, prov); }
+function clearKey()          { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(STORAGE_PROVIDER_KEY); }
+function hasValidKey() {
+  const k = getStoredKey();
+  const p = getStoredProvider();
+  if (p === 'groq')   return k && k.startsWith('gsk_');
+  if (p === 'openai') return k && k.startsWith('sk-');
+  return false;
+}
+
+// プロバイダータブ切り替え
+let currentProvider = 'groq';
+function switchProvider(prov) {
+  currentProvider = prov;
+  const isGroq = prov === 'groq';
+  document.getElementById('tabGroq').style.cssText   = isGroq
+    ? 'flex:1;padding:10px;border-radius:10px;border:2px solid #ff6b2b;background:#fff4ef;color:#d14a00;font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;'
+    : 'flex:1;padding:10px;border-radius:10px;border:2px solid var(--gray-300);background:var(--white);color:var(--gray-600);font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;';
+  document.getElementById('tabOpenai').style.cssText = !isGroq
+    ? 'flex:1;padding:10px;border-radius:10px;border:2px solid var(--blue-main);background:var(--blue-pale);color:var(--blue-main);font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;'
+    : 'flex:1;padding:10px;border-radius:10px;border:2px solid var(--gray-300);background:var(--white);color:var(--gray-600);font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;';
+  document.getElementById('groqInfo').style.display   = isGroq  ? 'block' : 'none';
+  document.getElementById('openaiInfo').style.display = !isGroq ? 'block' : 'none';
+  document.getElementById('modalKeyLabel').textContent = isGroq ? '🔑 Groq APIキー' : '🔑 OpenAI APIキー';
+  document.getElementById('modalKeyInput').placeholder = isGroq ? 'gsk_...' : 'sk-proj-...';
+}
+document.getElementById('tabGroq').addEventListener('click',   () => switchProvider('groq'));
+document.getElementById('tabOpenai').addEventListener('click', () => switchProvider('openai'));
 
 function updateUI() {
   const dot    = document.getElementById('aiDot');
@@ -596,6 +647,8 @@ function updateUI() {
 function openModal() {
   const overlay = document.getElementById('modalOverlay');
   overlay.classList.add('visible');
+  const storedProv = getStoredProvider();
+  switchProvider(storedProv);
   const input = document.getElementById('modalKeyInput');
   input.value = getStoredKey();
   input.classList.remove('error');
@@ -608,18 +661,22 @@ function closeModal() {
 
 // モーダルイベント
 document.getElementById('modalSaveBtn').addEventListener('click', () => {
-  const val = document.getElementById('modalKeyInput').value.trim();
-  const errEl = document.getElementById('modalErr');
+  const val    = document.getElementById('modalKeyInput').value.trim();
+  const errEl  = document.getElementById('modalErr');
   const input  = document.getElementById('modalKeyInput');
-  if (!val.startsWith('sk-')) {
+  const isGroq = currentProvider === 'groq';
+  const valid  = isGroq ? val.startsWith('gsk_') : val.startsWith('sk-');
+  if (!valid) {
     input.classList.add('error');
+    errEl.textContent = isGroq
+      ? 'Groqキーの形式が正しくありません（gsk_ で始まる文字列）'
+      : 'OpenAIキーの形式が正しくありません（sk- で始まる文字列）';
     errEl.classList.add('visible');
     return;
   }
-  saveKey(val);
+  saveKey(val, currentProvider);
   closeModal();
   updateUI();
-  // 入力中の検索があれば再実行
   const term = document.getElementById('searchInput').value.trim();
   if (term) doAISearch(term);
 });
@@ -682,8 +739,9 @@ async function doAISearch(term) {
   if (currentController) currentController.abort();
   currentController = new AbortController();
 
-  const apiKey = getStoredKey();
-  const card   = document.getElementById('aiCard');
+  const apiKey   = getStoredKey();
+  const provider = getStoredProvider();
+  const card     = document.getElementById('aiCard');
   card.classList.add('visible');
   document.getElementById('aiCardTerm').textContent = term.trim();
   document.getElementById('aiCardCat').textContent  = '解析中...';
@@ -709,7 +767,7 @@ async function doAISearch(term) {
     const resp = await fetch('/api/explain', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ term: term.trim(), apiKey }),
+      body:    JSON.stringify({ term: term.trim(), apiKey, provider }),
       signal:  currentController.signal
     });
     if (!resp.ok) throw new Error(`サーバーエラー (${resp.status})`);
@@ -732,9 +790,9 @@ async function doAISearch(term) {
                 clearKey(); updateUI();
                 throw new Error('APIキーが無効です。正しいキーを再設定してください。');
               } else if (json.error === 'RATE_LIMIT') {
-                throw new Error('リクエストが多すぎます。しばらくしてから再試行してください。');
+                throw new Error('リクエスト制限に達しました。Groqキーを使うと無料で制限なく使えます。');
               } else if (json.error === 'QUOTA_EXCEEDED') {
-                throw new Error('APIの利用上限に達しました。OpenAIダッシュボードをご確認ください。');
+                throw new Error('API利用上限に達しました。Groqキー（無料）への切り替えをお勧めします。');
               }
               throw new Error(json.error);
             }

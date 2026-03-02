@@ -13,9 +13,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 // ── AI 用語解説 プロキシ API（ストリーミング） ─────────────
-// フロントからAPIキーを受け取り、OpenAIへ転送する
 app.post('/api/explain', async (req, res) => {
-  const { term, apiKey } = req.body;
+  const { term, apiKey, provider } = req.body;
 
   if (!term || !term.trim()) {
     return res.status(400).json({ error: '用語を入力してください' });
@@ -23,6 +22,13 @@ app.post('/api/explain', async (req, res) => {
   if (!apiKey || !apiKey.trim()) {
     return res.status(400).json({ error: 'APIキーが必要です' });
   }
+
+  // SSE ヘッダー
+  res.setHeader('Content-Type',      'text/event-stream');
+  res.setHeader('Cache-Control',     'no-cache');
+  res.setHeader('Connection',        'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
 
   const systemPrompt = `あなたは製薬業界・創薬・臨床試験・AIテクノロジーに精通した日本人の専門家アドバイザーです。
 製薬会社の営業担当者が、社内外で使われる専門用語を素早く理解し、商談や提案で活用できるよう、
@@ -37,50 +43,42 @@ app.post('/api/explain', async (req, res) => {
   "related": ["関連用語1", "関連用語2", "関連用語3"]
 }`;
 
-  // SSE ヘッダー
-  res.setHeader('Content-Type',      'text/event-stream');
-  res.setHeader('Cache-Control',     'no-cache');
-  res.setHeader('Connection',        'keep-alive');
-  res.setHeader('X-Accel-Buffering', 'no');
-  res.flushHeaders();
+  // プロバイダー判定
+  const isGroq = provider === 'groq' || apiKey.trim().startsWith('gsk_');
+  const endpoint = isGroq
+    ? 'https://api.groq.com/openai/v1/chat/completions'
+    : 'https://api.openai.com/v1/chat/completions';
 
-  // モデル優先順（429時は次のモデルにフォールバック）
-  const MODELS = ['gpt-3.5-turbo', 'gpt-4o-mini'];
-  let response = null;
-  let usedModel = MODELS[0];
+  // モデル選択
+  const model = isGroq ? 'llama-3.1-8b-instant' : 'gpt-3.5-turbo';
+
+  console.log(`▶ /api/explain  provider=${isGroq?'groq':'openai'}  model=${model}  term=${term}`);
 
   try {
-    for (const model of MODELS) {
-      usedModel = model;
-      response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': `Bearer ${apiKey.trim()}`
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user',   content: `次の製薬・AI専門用語を解説してください：「${term.trim()}」` }
-          ],
-          stream:      true,
-          temperature: 0.7,
-          max_tokens:  600
-        })
-      });
-      // 429以外のエラーか成功ならループ終了
-      if (response.ok || response.status !== 429) break;
-      console.warn(`${model} → 429, trying next model...`);
-      // 少し待ってから次のモデルを試す
-      await new Promise(r => setTimeout(r, 1500));
-    }
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${apiKey.trim()}`
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user',   content: `次の製薬・AI専門用語を解説してください：「${term.trim()}」` }
+        ],
+        stream:      true,
+        temperature: 0.7,
+        max_tokens:  700
+      })
+    });
 
     if (!response.ok) {
       let errMsg = 'AI接続エラーが発生しました';
       if (response.status === 401) errMsg = 'INVALID_KEY';
       else if (response.status === 429) errMsg = 'RATE_LIMIT';
-      else if (response.status === 402) errMsg = 'QUOTA_EXCEEDED';
+      else if (response.status === 402 || response.status === 403) errMsg = 'QUOTA_EXCEEDED';
+      console.error(`API error ${response.status}: ${errMsg}`);
       res.write(`data: ${JSON.stringify({ error: errMsg })}\n\n`);
       res.end();
       return;
