@@ -20,8 +20,6 @@
       --accent-light:#e0f7fa;
       --green:       #2e7d32;
       --green-light: #e8f5e9;
-      --orange:      #e65100;
-      --orange-light:#fff3e0;
       --shadow-sm:   0 2px 8px rgba(21,101,192,.12);
       --shadow-md:   0 8px 32px rgba(21,101,192,.18);
       --radius:      14px;
@@ -32,63 +30,6 @@
       background: var(--blue-bg);
       color: var(--gray-800);
       min-height: 100vh;
-    }
-
-    /* ===== API Key Modal ===== */
-    .modal-overlay {
-      display: none; position: fixed; inset: 0; z-index: 1000;
-      background: rgba(10,61,107,.55); backdrop-filter: blur(4px);
-      align-items: center; justify-content: center; padding: 16px;
-    }
-    .modal-overlay.visible { display: flex; }
-    .modal {
-      background: var(--white); border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(10,61,107,.3);
-      width: 100%; max-width: 440px;
-      padding: 32px 28px; animation: modalIn .25s ease;
-    }
-    @keyframes modalIn { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
-    .modal-logo { text-align: center; font-size: 2.4rem; margin-bottom: 8px; }
-    .modal-title { text-align: center; font-size: 1.15rem; font-weight: 800; color: var(--blue-dark); margin-bottom: 4px; }
-    .modal-sub   { text-align: center; font-size: .82rem; color: var(--gray-600); margin-bottom: 24px; }
-    .modal-label { font-size: .8rem; font-weight: 700; color: var(--blue-main); margin-bottom: 7px; display: block; }
-    .modal-input-wrap { position: relative; margin-bottom: 8px; }
-    .modal-input {
-      width: 100%; padding: 13px 44px 13px 14px;
-      border: 2px solid var(--gray-300); border-radius: 10px;
-      font-size: .9rem; outline: none; transition: border-color .2s;
-      font-family: monospace; letter-spacing: .03em;
-    }
-    .modal-input:focus { border-color: var(--blue-light); }
-    .modal-input.error { border-color: #e53935; }
-    .modal-eye {
-      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-      background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px;
-    }
-    .modal-hint {
-      font-size: .76rem; color: var(--gray-600); margin-bottom: 20px;
-      line-height: 1.6;
-    }
-    .modal-hint a { color: var(--blue-main); }
-    .modal-err { font-size: .8rem; color: #e53935; margin-bottom: 12px; display: none; }
-    .modal-err.visible { display: block; }
-    .modal-btn {
-      width: 100%; padding: 14px; background: var(--blue-main); color: var(--white);
-      border: none; border-radius: 10px; font-size: .97rem; font-weight: 700;
-      cursor: pointer; transition: background .2s; margin-bottom: 10px;
-    }
-    .modal-btn:hover { background: var(--blue-dark); }
-    .modal-btn:disabled { opacity: .5; cursor: not-allowed; }
-    .modal-skip {
-      width: 100%; padding: 10px; background: none; color: var(--gray-600);
-      border: 2px solid var(--gray-300); border-radius: 10px; font-size: .85rem;
-      cursor: pointer; transition: all .2s;
-    }
-    .modal-skip:hover { border-color: var(--gray-600); color: var(--gray-800); }
-    .modal-security {
-      margin-top: 16px; padding: 10px 12px;
-      background: var(--green-light); border-radius: 8px;
-      font-size: .75rem; color: var(--green); line-height: 1.6;
     }
 
     /* ===== Header ===== */
@@ -111,7 +52,6 @@
     }
     .header-title { font-size: 1.05rem; font-weight: 700; }
     .header-sub   { font-size: .65rem; opacity: .75; letter-spacing: .05em; text-transform: uppercase; }
-    .header-right { display: flex; align-items: center; gap: 8px; }
     .header-badge {
       background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28);
       border-radius: 20px; padding: 4px 11px; font-size: .7rem; font-weight: 700;
@@ -120,13 +60,6 @@
     .ai-dot { width: 7px; height: 7px; border-radius: 50%; background: #69f0ae; animation: pulse 1.8s infinite; }
     .ai-dot.off { background: #ffb300; animation: none; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
-    .key-btn {
-      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
-      border-radius: 20px; padding: 4px 12px; font-size: .72rem; font-weight: 700;
-      cursor: pointer; color: var(--white); transition: background .2s;
-      display: flex; align-items: center; gap: 4px;
-    }
-    .key-btn:hover { background: rgba(255,255,255,.28); }
 
     /* ===== Hero ===== */
     .hero {
@@ -167,19 +100,6 @@
       font-size: .73rem; transition: background .15s;
     }
     .hint-chip:hover { background: rgba(255,255,255,.26); }
-
-    /* ===== No-Key Banner ===== */
-    .nokey-banner {
-      display: none; background: linear-gradient(90deg, #fff3e0, #fff8e1);
-      border-bottom: 2px solid #ffb300;
-      padding: 11px 20px; text-align: center; font-size: .85rem; color: #5d4037;
-    }
-    .nokey-banner.visible { display: block; }
-    .nokey-banner button {
-      background: #ffb300; border: none; border-radius: 6px;
-      padding: 3px 12px; font-size: .8rem; font-weight: 700;
-      cursor: pointer; margin-left: 8px; color: #3e2723;
-    }
 
     /* ===== Main ===== */
     main { max-width: 960px; margin: 0 auto; padding: 32px 14px 60px; }
@@ -233,52 +153,10 @@
       text-transform: uppercase; margin-bottom: 7px;
       display: flex; align-items: center; gap: 5px;
     }
-    .ai-sec-title.meaning { color: var(--blue-main); }
-    .ai-sec-title.talk    { color: var(--accent); }
-    .ai-sec-title.related { color: var(--green); }
-    .ai-sec-title.refs    { color: #6a1b9a; }
-
-    /* ===== 参考文献 ===== */
-    .refs-list { display: flex; flex-direction: column; gap: 10px; }
-    .ref-item {
-      background: #f9f0ff; border: 1px solid #e1bee7;
-      border-left: 4px solid #9c27b0;
-      border-radius: 0 10px 10px 0;
-      padding: 11px 14px; transition: background .2s;
-    }
-    .ref-item:hover { background: #f3e5f5; }
-    .ref-item a { text-decoration: none; color: inherit; display: block; }
-    .ref-badge {
-      display: inline-block; font-size: .65rem; font-weight: 700;
-      padding: 2px 8px; border-radius: 20px; margin-bottom: 5px;
-    }
-    .ref-badge.pubmed { background: #e3f2fd; color: #1565c0; }
-    .ref-badge.wiki-ja { background: #e8f5e9; color: #2e7d32; }
-    .ref-badge.wiki-en { background: #fff3e0; color: #e65100; }
-    .ref-title {
-      font-size: .83rem; font-weight: 700; line-height: 1.5;
-      color: #4a148c; margin-bottom: 3px;
-    }
-    .ref-title-ja {
-      font-size: .78rem; color: var(--gray-600); line-height: 1.5;
-      margin-bottom: 3px; font-style: italic;
-    }
-    .ref-meta {
-      font-size: .72rem; color: var(--gray-600); line-height: 1.4;
-    }
-    .ref-url {
-      font-size: .72rem; color: #9c27b0; word-break: break-all;
-      margin-top: 3px; opacity: .8;
-    }
-    .refs-loading {
-      display: none; align-items: center; gap: 8px;
-      font-size: .82rem; color: var(--gray-600); padding: 6px 0;
-    }
-    .refs-spinner {
-      width: 14px; height: 14px; flex-shrink: 0;
-      border: 2px solid #e1bee7; border-top-color: #9c27b0;
-      border-radius: 50%; animation: spin .7s linear infinite;
-    }
+    .ai-sec-title.meaning  { color: var(--blue-main); }
+    .ai-sec-title.talk     { color: var(--accent); }
+    .ai-sec-title.related  { color: var(--green); }
+    .ai-sec-title.refs     { color: #6a1b9a; }
     .ai-meaning { font-size: .9rem; line-height: 1.8; }
     .talk-box {
       background: var(--accent-light); border-left: 4px solid var(--accent);
@@ -300,6 +178,37 @@
       animation: blink .85s steps(1) infinite;
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ===== 参考文献 ===== */
+    .refs-list { display: flex; flex-direction: column; gap: 10px; }
+    .ref-item {
+      background: #f9f0ff; border: 1px solid #e1bee7;
+      border-left: 4px solid #9c27b0;
+      border-radius: 0 10px 10px 0;
+      padding: 11px 14px; transition: background .2s;
+    }
+    .ref-item:hover { background: #f3e5f5; }
+    .ref-item a { text-decoration: none; color: inherit; display: block; }
+    .ref-badge {
+      display: inline-block; font-size: .65rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 20px; margin-bottom: 5px;
+    }
+    .ref-badge.pubmed  { background: #e3f2fd; color: #1565c0; }
+    .ref-badge.wiki-ja { background: #e8f5e9; color: #2e7d32; }
+    .ref-badge.wiki-en { background: #fff3e0; color: #e65100; }
+    .ref-title    { font-size: .83rem; font-weight: 700; line-height: 1.5; color: #4a148c; margin-bottom: 3px; }
+    .ref-title-ja { font-size: .78rem; color: var(--gray-600); line-height: 1.5; margin-bottom: 3px; font-style: italic; }
+    .ref-meta     { font-size: .72rem; color: var(--gray-600); line-height: 1.4; }
+    .ref-url      { font-size: .72rem; color: #9c27b0; word-break: break-all; margin-top: 3px; opacity: .8; }
+    .refs-loading {
+      display: none; align-items: center; gap: 8px;
+      font-size: .82rem; color: var(--gray-600); padding: 6px 0;
+    }
+    .refs-spinner {
+      width: 14px; height: 14px; flex-shrink: 0;
+      border: 2px solid #e1bee7; border-top-color: #9c27b0;
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
 
     /* ===== Sample section ===== */
     .section-label {
@@ -388,62 +297,6 @@
 </head>
 <body>
 
-<!-- ===== APIキー入力モーダル ===== -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <div class="modal-logo">💊</div>
-    <div class="modal-title">PharmaAI 用語辞典</div>
-    <div class="modal-sub">APIキーを入力してAI解説を有効にします</div>
-
-    <!-- プロバイダー選択タブ -->
-    <div style="display:flex;gap:8px;margin-bottom:18px;">
-      <button class="provider-tab active" id="tabGroq" data-provider="groq"
-        style="flex:1;padding:10px;border-radius:10px;border:2px solid #ff6b2b;background:#fff4ef;color:#d14a00;font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;">
-        🚀 Groq（無料・推奨）
-      </button>
-      <button class="provider-tab" id="tabOpenai" data-provider="openai"
-        style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--gray-300);background:var(--white);color:var(--gray-600);font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;">
-        🤖 OpenAI
-      </button>
-    </div>
-
-    <!-- Groq説明 -->
-    <div id="groqInfo" style="background:#fff4ef;border-radius:10px;padding:12px;margin-bottom:14px;font-size:.8rem;color:#7c3300;line-height:1.7;">
-      <strong>🎉 Groqは完全無料・登録のみでOK！</strong><br>
-      ① <a href="https://console.groq.com/keys" target="_blank" style="color:#d14a00;font-weight:700;">console.groq.com/keys</a> にアクセス<br>
-      ② Googleアカウントなどでサインアップ<br>
-      ③「Create API Key」→ <code style="background:#ffe0cc;padding:1px 5px;border-radius:4px;">gsk_...</code> をコピー
-    </div>
-    <!-- OpenAI説明 -->
-    <div id="openaiInfo" style="display:none;background:#e8f4ff;border-radius:10px;padding:12px;margin-bottom:14px;font-size:.8rem;color:#0d3c6e;line-height:1.7;">
-      <strong>💳 OpenAIは$5以上のチャージが必要です</strong><br>
-      ① <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#1565c0;font-weight:700;">platform.openai.com/api-keys</a> でキー取得<br>
-      ② Billing で $5以上チャージしてから使用してください<br>
-      ③ キー形式: <code style="background:#d0e8ff;padding:1px 5px;border-radius:4px;">sk-proj-...</code>
-    </div>
-
-    <label class="modal-label" for="modalKeyInput" id="modalKeyLabel">🔑 Groq APIキー</label>
-    <div class="modal-input-wrap">
-      <input id="modalKeyInput" class="modal-input" type="password"
-        placeholder="gsk_..." autocomplete="off" spellcheck="false"/>
-      <button class="modal-eye" id="modalEye" type="button">👁</button>
-    </div>
-    <div class="modal-err" id="modalErr">キーの形式が正しくありません</div>
-    <button class="modal-btn" id="modalSaveBtn">✅ 保存してAI解説を開始</button>
-    <button class="modal-skip" id="modalSkipBtn">スキップ（サンプルのみ閲覧）</button>
-    <div class="modal-security">
-      🔒 セキュリティ: APIキーはこのブラウザのlocalStorageにのみ保存されます。
-      他のユーザーや外部サーバーには一切送信されません。
-    </div>
-  </div>
-</div>
-
-<!-- ===== No-Key Banner ===== -->
-<div class="nokey-banner" id="nokeyBanner">
-  🔑 AIキー未設定 — サンプル22件は閲覧できます。
-  <button id="bannerKeyBtn">APIキーを設定</button>
-</div>
-
 <!-- ===== Header ===== -->
 <header>
   <div class="header-inner">
@@ -454,12 +307,9 @@
         <div class="header-sub">Pharma &amp; AI Glossary</div>
       </div>
     </div>
-    <div class="header-right">
-      <button class="key-btn" id="headerKeyBtn">🔑 APIキー</button>
-      <div class="header-badge">
-        <span class="ai-dot" id="aiDot"></span>
-        <span id="badgeText">確認中</span>
-      </div>
+    <div class="header-badge">
+      <span class="ai-dot" id="aiDot"></span>
+      <span id="badgeText">確認中…</span>
     </div>
   </div>
 </header>
@@ -531,7 +381,7 @@
     </div>
   </div>
 
-  <div class="section-label">サンプル用語集 <span style="font-size:.7rem;font-weight:400;color:var(--gray-600);margin-left:4px;">クリックでAI解説（AI有効時）</span></div>
+  <div class="section-label">サンプル用語集 <span style="font-size:.7rem;font-weight:400;color:var(--gray-600);margin-left:4px;">クリックでAI解説</span></div>
   <div class="filter-bar" id="filterBar">
     <button class="filter-btn active" data-cat="all">すべて</button>
     <button class="filter-btn" data-cat="AI技術">🤖 AI技術</button>
@@ -549,12 +399,12 @@
   <div class="no-result" id="noResult">
     <div class="icon">🔍</div>
     <h3>一致する用語が見つかりません</h3>
-    <p style="font-size:.84rem;margin-top:6px;">AIキー設定済みなら上の検索窓でAIに質問できます</p>
+    <p style="font-size:.84rem;margin-top:6px;">上の検索窓でAIに直接質問してみてください</p>
   </div>
 </main>
 
 <footer>
-  © 2025 PharmaAI 用語辞典 &nbsp;|&nbsp; Powered by OpenAI &nbsp;|&nbsp; 製薬×AI 営業支援ツール
+  © 2025 PharmaAI 用語辞典 &nbsp;|&nbsp; Powered by Groq &amp; EuropePMC &nbsp;|&nbsp; 製薬×AI 営業支援ツール
 </footer>
 
 <script>
@@ -644,129 +494,51 @@ function highlight(text, kw) {
 }
 
 // ============================================================
-//  APIキー管理
+//  AI 有効状態をサーバーから確認
 // ============================================================
-const STORAGE_KEY          = 'pharmaai_openai_key';
-const STORAGE_PROVIDER_KEY = 'pharmaai_provider';
+let aiEnabled = false;
 
-function getStoredKey()      { return localStorage.getItem(STORAGE_KEY) || ''; }
-function getStoredProvider() { return localStorage.getItem(STORAGE_PROVIDER_KEY) || 'groq'; }
-function saveKey(k, prov)    { localStorage.setItem(STORAGE_KEY, k); localStorage.setItem(STORAGE_PROVIDER_KEY, prov); }
-function clearKey()          { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(STORAGE_PROVIDER_KEY); }
-function hasValidKey() {
-  const k = getStoredKey();
-  const p = getStoredProvider();
-  if (p === 'groq')   return k && k.startsWith('gsk_');
-  if (p === 'openai') return k && k.startsWith('sk-');
-  return false;
-}
+async function checkAIStatus() {
+  try {
+    const res  = await fetch('/api/health');
+    const data = await res.json();
+    aiEnabled = data.aiEnabled === true;
+  } catch { aiEnabled = false; }
 
-// プロバイダータブ切り替え
-let currentProvider = 'groq';
-function switchProvider(prov) {
-  currentProvider = prov;
-  const isGroq = prov === 'groq';
-  document.getElementById('tabGroq').style.cssText   = isGroq
-    ? 'flex:1;padding:10px;border-radius:10px;border:2px solid #ff6b2b;background:#fff4ef;color:#d14a00;font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;'
-    : 'flex:1;padding:10px;border-radius:10px;border:2px solid var(--gray-300);background:var(--white);color:var(--gray-600);font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;';
-  document.getElementById('tabOpenai').style.cssText = !isGroq
-    ? 'flex:1;padding:10px;border-radius:10px;border:2px solid var(--blue-main);background:var(--blue-pale);color:var(--blue-main);font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;'
-    : 'flex:1;padding:10px;border-radius:10px;border:2px solid var(--gray-300);background:var(--white);color:var(--gray-600);font-weight:700;font-size:.85rem;cursor:pointer;transition:all .2s;';
-  document.getElementById('groqInfo').style.display   = isGroq  ? 'block' : 'none';
-  document.getElementById('openaiInfo').style.display = !isGroq ? 'block' : 'none';
-  document.getElementById('modalKeyLabel').textContent = isGroq ? '🔑 Groq APIキー' : '🔑 OpenAI APIキー';
-  document.getElementById('modalKeyInput').placeholder = isGroq ? 'gsk_...' : 'sk-proj-...';
-}
-document.getElementById('tabGroq').addEventListener('click',   () => switchProvider('groq'));
-document.getElementById('tabOpenai').addEventListener('click', () => switchProvider('openai'));
-
-function updateUI() {
-  const dot    = document.getElementById('aiDot');
-  const badge  = document.getElementById('badgeText');
-  const banner = document.getElementById('nokeyBanner');
-  if (hasValidKey()) {
+  const dot   = document.getElementById('aiDot');
+  const badge = document.getElementById('badgeText');
+  if (aiEnabled) {
     dot.classList.remove('off');
-    badge.textContent = 'AI有効';
-    banner.classList.remove('visible');
+    badge.textContent = 'AI 有効';
   } else {
     dot.classList.add('off');
-    badge.textContent = 'キー未設定';
-    banner.classList.add('visible');
+    badge.textContent = 'AI 準備中';
   }
 }
-
-function openModal() {
-  const overlay = document.getElementById('modalOverlay');
-  overlay.classList.add('visible');
-  const storedProv = getStoredProvider();
-  switchProvider(storedProv);
-  const input = document.getElementById('modalKeyInput');
-  input.value = getStoredKey();
-  input.classList.remove('error');
-  document.getElementById('modalErr').classList.remove('visible');
-  setTimeout(()=>input.focus(), 100);
-}
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('visible');
-}
-
-// モーダルイベント
-document.getElementById('modalSaveBtn').addEventListener('click', () => {
-  const val    = document.getElementById('modalKeyInput').value.trim();
-  const errEl  = document.getElementById('modalErr');
-  const input  = document.getElementById('modalKeyInput');
-  const isGroq = currentProvider === 'groq';
-  const valid  = isGroq ? val.startsWith('gsk_') : val.startsWith('sk-');
-  if (!valid) {
-    input.classList.add('error');
-    errEl.textContent = isGroq
-      ? 'Groqキーの形式が正しくありません（gsk_ で始まる文字列）'
-      : 'OpenAIキーの形式が正しくありません（sk- で始まる文字列）';
-    errEl.classList.add('visible');
-    return;
-  }
-  saveKey(val, currentProvider);
-  closeModal();
-  updateUI();
-  const term = document.getElementById('searchInput').value.trim();
-  if (term) doAISearch(term);
-});
-document.getElementById('modalSkipBtn').addEventListener('click', closeModal);
-document.getElementById('modalEye').addEventListener('click', () => {
-  const input = document.getElementById('modalKeyInput');
-  input.type = input.type === 'password' ? 'text' : 'password';
-});
-document.getElementById('modalKeyInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('modalSaveBtn').click();
-});
-document.getElementById('headerKeyBtn').addEventListener('click', openModal);
-document.getElementById('bannerKeyBtn').addEventListener('click', openModal);
 
 // ============================================================
 //  Search
 // ============================================================
 function doSearch(term) {
   if (!term.trim()) return;
-  if (!hasValidKey()) {
-    // サンプルから探して表示 + モーダルを開く
+  if (!aiEnabled) {
     showSampleResult(term);
-    openModal();
     return;
   }
   doAISearch(term);
 }
 
 function showSampleResult(term) {
-  const q = term.trim().toLowerCase();
+  const q     = term.trim().toLowerCase();
   const match = SAMPLES.find(s =>
-    s.term.toLowerCase().includes(q) ||
-    s.meaning.toLowerCase().includes(q)
+    s.term.toLowerCase().includes(q) || s.meaning.toLowerCase().includes(q)
   );
   const card = document.getElementById('aiCard');
   card.classList.add('visible');
   document.getElementById('aiCardTerm').textContent = term.trim();
   document.getElementById('aiLoading').style.display = 'none';
   document.getElementById('aiError').style.display   = 'none';
+  document.getElementById('aiRefsSec').style.display = 'none';
   if (match) {
     document.getElementById('aiCardIcon').textContent = match.icon;
     document.getElementById('aiCardCat').textContent  = match.category;
@@ -774,12 +546,13 @@ function showSampleResult(term) {
     document.getElementById('aiTalk').textContent     = match.talk;
     document.getElementById('aiRelatedSec').style.display = 'none';
     document.getElementById('aiBody').style.display   = 'block';
+    document.getElementById('aiRefsSec').style.display = 'none';
   } else {
     document.getElementById('aiCardIcon').textContent = '🔍';
     document.getElementById('aiCardCat').textContent  = '検索結果';
     document.getElementById('aiBody').style.display   = 'none';
     document.getElementById('aiError').style.display  = 'flex';
-    document.getElementById('aiErrorMsg').textContent = 'サンプルに見つかりません。APIキーを設定するとAIが解説します。';
+    document.getElementById('aiErrorMsg').textContent = 'サンプル用語集に見つかりませんでした。別の用語をお試しください。';
   }
   card.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
@@ -790,9 +563,7 @@ async function doAISearch(term) {
   if (currentController) currentController.abort();
   currentController = new AbortController();
 
-  const apiKey   = getStoredKey();
-  const provider = getStoredProvider();
-  const card     = document.getElementById('aiCard');
+  const card = document.getElementById('aiCard');
   card.classList.add('visible');
   document.getElementById('aiCardTerm').textContent = term.trim();
   document.getElementById('aiCardCat').textContent  = '解析中...';
@@ -800,6 +571,7 @@ async function doAISearch(term) {
   document.getElementById('aiLoading').style.display = 'flex';
   document.getElementById('aiBody').style.display    = 'none';
   document.getElementById('aiError').style.display   = 'none';
+  document.getElementById('aiRefsSec').style.display = 'none';
   card.scrollIntoView({ behavior:'smooth', block:'nearest' });
 
   const btn = document.getElementById('searchBtn');
@@ -811,17 +583,27 @@ async function doAISearch(term) {
 
   document.getElementById('aiLoading').style.display = 'none';
   document.getElementById('aiBody').style.display    = 'block';
+  document.getElementById('aiRefsSec').style.display = 'block';
   document.getElementById('aiMeaning').innerHTML = '<span class="cursor"></span>';
   document.getElementById('aiTalk').innerHTML    = '<span class="cursor"></span>';
+  document.getElementById('refsList').innerHTML  = '';
+  document.getElementById('refsLoading').style.display = 'flex';
 
   try {
+    // APIキーはサーバー側で管理 — クライアントはtermだけ送る
     const resp = await fetch('/api/explain', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ term: term.trim(), apiKey, provider }),
+      body:    JSON.stringify({ term: term.trim() }),
       signal:  currentController.signal
     });
-    if (!resp.ok) throw new Error(`サーバーエラー (${resp.status})`);
+
+    if (!resp.ok) {
+      const data = await resp.json().catch(()=>({}));
+      throw new Error(data.error === 'AI_UNAVAILABLE'
+        ? 'AI機能は現在準備中です。しばらくお待ちください。'
+        : `サーバーエラー (${resp.status})`);
+    }
 
     const reader  = resp.body.getReader();
     const decoder = new TextDecoder();
@@ -837,24 +619,16 @@ async function doAISearch(term) {
           try {
             const json = JSON.parse(t.slice(6));
             if (json.error) {
-              if (json.error === 'INVALID_KEY') {
-                clearKey(); updateUI();
-                throw new Error('APIキーが無効です。正しいキーを再設定してください。');
-              } else if (json.error === 'RATE_LIMIT') {
-                throw new Error('リクエスト制限に達しました。Groqキーを使うと無料で制限なく使えます。');
-              } else if (json.error === 'QUOTA_EXCEEDED') {
-                throw new Error('API利用上限に達しました。Groqキー（無料）への切り替えをお勧めします。');
-              }
+              if (json.error === 'RATE_LIMIT') throw new Error('リクエストが集中しています。少し時間をおいてから再試行してください。');
               throw new Error(json.error);
             }
-            if (json.content) { streamBuf += json.content; }
-          } catch(e) { if(e.message !== 'parse') throw e; }
+            if (json.content) streamBuf += json.content;
+          } catch(e) { if (e.message !== 'parse') throw e; }
         }
       }
       if (streamBuf) streamRender(streamBuf, parsed);
     }
     finalRender(streamBuf, parsed);
-    // AI解説完了後に参考文献を非同期取得
     fetchReferences(term.trim());
 
   } catch(e) {
@@ -862,10 +636,7 @@ async function doAISearch(term) {
     document.getElementById('aiBody').style.display  = 'none';
     document.getElementById('aiError').style.display = 'flex';
     document.getElementById('aiErrorMsg').textContent = e.message || 'エラーが発生しました';
-    // キーエラーならモーダルを開く
-    if (e.message && e.message.includes('APIキーが無効')) {
-      setTimeout(openModal, 800);
-    }
+    document.getElementById('refsLoading').style.display = 'none';
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<span>✨</span><span>AI解説</span>';
@@ -886,8 +657,7 @@ function streamRender(buf, parsed) {
 function finalRender(buf, parsed) {
   try {
     const clean = buf.trim().replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();
-    const data  = JSON.parse(clean);
-    Object.assign(parsed, data);
+    Object.assign(parsed, JSON.parse(clean));
   } catch {}
   document.getElementById('aiMeaning').textContent = parsed.meaning || '（解説を取得できませんでした）';
   document.getElementById('aiTalk').textContent    = parsed.talk    || '（トーク例を取得できませんでした）';
@@ -900,7 +670,6 @@ function finalRender(buf, parsed) {
   } else {
     document.getElementById('aiRelatedSec').style.display = 'none';
   }
-  // 参考文献エリアを初期化（ローディング表示）
   document.getElementById('refsList').innerHTML = '';
   document.getElementById('refsLoading').style.display = 'flex';
 }
@@ -925,12 +694,9 @@ async function fetchReferences(term) {
 
     const items = [];
 
-    // PubMed論文（英語タイトル＋日本語訳）
-    if (data.papers && data.papers.length > 0) {
-      data.papers.forEach((p) => {
-        const titleJaHtml = p.titleJa
-          ? `<div class="ref-title-ja">🇯🇵 ${esc(p.titleJa)}</div>`
-          : '';
+    if (data.papers?.length) {
+      data.papers.forEach(p => {
+        const titleJaHtml = p.titleJa ? `<div class="ref-title-ja">🇯🇵 ${esc(p.titleJa)}</div>` : '';
         items.push(`
           <div class="ref-item">
             <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
@@ -944,7 +710,6 @@ async function fetchReferences(term) {
       });
     }
 
-    // Wikipedia
     if (data.wiki) {
       const langLabel = data.wiki.lang === 'ja' ? '🌐 Wikipedia（日本語）' : '🌐 Wikipedia（English）';
       const badgeCls  = data.wiki.lang === 'ja' ? 'wiki-ja' : 'wiki-en';
@@ -958,15 +723,14 @@ async function fetchReferences(term) {
         </div>`);
     }
 
-    if (items.length === 0) {
-      listEl.innerHTML = '<p style="font-size:.82rem;color:var(--gray-600);padding:6px 0;">関連する文献が見つかりませんでした。</p>';
-    } else {
-      listEl.innerHTML = items.join('');
-    }
+    listEl.innerHTML = items.length
+      ? items.join('')
+      : '<p style="font-size:.82rem;color:var(--gray-600);padding:6px 0;">関連する文献が見つかりませんでした。</p>';
 
-  } catch(e) {
-    loadingEl.style.display = 'none';
-    listEl.innerHTML = '<p style="font-size:.82rem;color:var(--gray-600);padding:6px 0;">文献取得中にエラーが発生しました。</p>';
+  } catch {
+    document.getElementById('refsLoading').style.display = 'none';
+    document.getElementById('refsList').innerHTML =
+      '<p style="font-size:.82rem;color:var(--gray-600);padding:6px 0;">文献取得中にエラーが発生しました。</p>';
   }
 }
 
@@ -982,13 +746,9 @@ function renderCards() {
   const count = document.getElementById('resultCount');
   const kw    = currentKeyword.trim().toLowerCase();
   let list    = SAMPLES.filter(i => currentCat==='all' || i.category===currentCat);
-  if (kw) {
-    list = list.filter(i =>
-      i.term.toLowerCase().includes(kw) ||
-      i.meaning.toLowerCase().includes(kw) ||
-      i.talk.toLowerCase().includes(kw)
-    );
-  }
+  if (kw) list = list.filter(i =>
+    i.term.toLowerCase().includes(kw) || i.meaning.toLowerCase().includes(kw) || i.talk.toLowerCase().includes(kw)
+  );
   if (!list.length) { grid.innerHTML=''; noRes.style.display='block'; count.textContent=''; return; }
   noRes.style.display = 'none';
   count.innerHTML = `<strong>${list.length}</strong> 件表示`;
@@ -1012,29 +772,29 @@ function renderCards() {
 // ============================================================
 //  Events
 // ============================================================
-document.getElementById('searchBtn').addEventListener('click', ()=>doSearch(document.getElementById('searchInput').value));
-document.getElementById('searchInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch(e.target.value); });
-document.getElementById('hintRow').addEventListener('click', e=>{
+document.getElementById('searchBtn').addEventListener('click', () => doSearch(document.getElementById('searchInput').value));
+document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key==='Enter') doSearch(e.target.value); });
+document.getElementById('hintRow').addEventListener('click', e => {
   const c = e.target.closest('.hint-chip');
-  if(!c) return;
+  if (!c) return;
   document.getElementById('searchInput').value = c.dataset.term;
   doSearch(c.dataset.term);
 });
-document.addEventListener('click', e=>{
+document.addEventListener('click', e => {
   const rc = e.target.closest('.related-chip');
-  if(rc){ document.getElementById('searchInput').value=rc.dataset.term; doSearch(rc.dataset.term); return; }
+  if (rc) { document.getElementById('searchInput').value = rc.dataset.term; doSearch(rc.dataset.term); return; }
   const card = e.target.closest('.card[data-term]');
-  if(card){ document.getElementById('searchInput').value=card.dataset.term; doSearch(card.dataset.term); }
+  if (card) { document.getElementById('searchInput').value = card.dataset.term; doSearch(card.dataset.term); }
 });
-document.getElementById('filterBar').addEventListener('click', e=>{
+document.getElementById('filterBar').addEventListener('click', e => {
   const b = e.target.closest('.filter-btn');
-  if(!b) return;
-  document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
+  if (!b) return;
+  document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
   b.classList.add('active');
   currentCat = b.dataset.cat;
   renderCards();
 });
-document.getElementById('sampleSearch').addEventListener('input', e=>{
+document.getElementById('sampleSearch').addEventListener('input', e => {
   currentKeyword = e.target.value;
   renderCards();
 });
@@ -1042,12 +802,8 @@ document.getElementById('sampleSearch').addEventListener('input', e=>{
 // ============================================================
 //  Init
 // ============================================================
-updateUI();
+checkAIStatus();
 renderCards();
-// 初回アクセス時（キー未設定）はモーダルを自動表示
-if (!hasValidKey()) {
-  setTimeout(openModal, 600);
-}
 </script>
 </body>
 </html>
