@@ -1,76 +1,27 @@
-const express  = require('express');
-const cors     = require('cors');
-const path     = require('path');
-const fs       = require('fs');
-const yaml     = require('js-yaml');
-const OpenAI   = require('openai');
+const express = require('express');
+const cors    = require('cors');
+const path    = require('path');
 
 const app  = express();
 const PORT = 3000;
 
-// ── OpenAI クライアント初期化 ───────────────────────────────
-const configPath = path.join(process.env.HOME || '/root', '.genspark_llm.yaml');
-let config = null;
-try {
-  const fileContents = fs.readFileSync(configPath, 'utf8');
-  config = yaml.load(fileContents);
-} catch (e) {
-  console.warn('YAML config not found, using env vars');
-}
-
-const apiKey  = config?.openai?.api_key  || process.env.OPENAI_API_KEY  || process.env.GENSPARK_TOKEN;
-const baseURL = config?.openai?.base_url || process.env.OPENAI_BASE_URL || 'https://www.genspark.ai/api/llm_proxy/v1';
-
-// YAMLに${GENSPARK_TOKEN}が書いてある場合は環境変数から取得
-const resolvedKey = (apiKey === '${GENSPARK_TOKEN}')
-  ? (process.env.GENSPARK_TOKEN || process.env.OPENAI_API_KEY)
-  : apiKey;
-
-// APIキーが gsk- 形式かどうかチェック
-const isValidKeyFormat = resolvedKey && resolvedKey.startsWith('gsk-');
-let aiEnabled = isValidKeyFormat;
-
-const openai = isValidKeyFormat
-  ? new OpenAI({ apiKey: resolvedKey, baseURL })
-  : null;
-
-console.log(`✅ PharmaAI サーバー設定`);
-console.log(`   Base URL : ${baseURL}`);
-console.log(`   API Key  : ${resolvedKey ? resolvedKey.slice(0,16)+'...' : '未設定'}`);
-console.log(`   AI機能   : ${aiEnabled ? '有効' : '⚠️ 無効（gsk-形式のAPIキーが必要）'}`);
-
-// ── ミドルウェア ────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── ヘルスチェック ─────────────────────────────────────────
-app.get('/api/health', (req, res) => res.json({
-  ok: true,
-  baseURL,
-  aiEnabled,
-  keyFormat: resolvedKey ? (isValidKeyFormat ? 'gsk-valid' : 'invalid-format') : 'missing'
-}));
+app.get('/api/health', (req, res) => res.json({ ok: true }));
 
-// ── AI ステータス確認 ──────────────────────────────────────
-app.get('/api/ai-status', (req, res) => res.json({ aiEnabled }));
-
-// ── AI 用語解説 API（ストリーミング） ──────────────────────
+// ── AI 用語解説 プロキシ API（ストリーミング） ─────────────
+// フロントからAPIキーを受け取り、OpenAIへ転送する
 app.post('/api/explain', async (req, res) => {
-  const { term } = req.body;
+  const { term, apiKey } = req.body;
+
   if (!term || !term.trim()) {
     return res.status(400).json({ error: '用語を入力してください' });
   }
-
-  // AI無効時はエラーを返す
-  if (!aiEnabled || !openai) {
-    res.setHeader('Content-Type',  'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection',    'keep-alive');
-    res.flushHeaders();
-    res.write(`data: ${JSON.stringify({ error: 'AI_DISABLED' })}\n\n`);
-    res.end();
-    return;
+  if (!apiKey || !apiKey.trim()) {
+    return res.status(400).json({ error: 'APIキーが必要です' });
   }
 
   const systemPrompt = `あなたは製薬業界・創薬・臨床試験・AIテクノロジーに精通した日本人の専門家アドバイザーです。
@@ -94,21 +45,52 @@ app.post('/api/explain', async (req, res) => {
   res.flushHeaders();
 
   try {
-    const stream = await openai.chat.completions.create({
-      model: 'gpt-5-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user',   content: `次の製薬・AI専門用語を解説してください：「${term.trim()}」` }
-      ],
-      stream:      true,
-      temperature: 0.7,
-      max_tokens:  800
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${apiKey.trim()}`
+      },
+      body: JSON.stringify({
+        model:       'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user',   content: `次の製薬・AI専門用語を解説してください：「${term.trim()}」` }
+        ],
+        stream:      true,
+        temperature: 0.7,
+        max_tokens:  800
+      })
     });
 
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        res.write(`data: ${JSON.stringify({ content })}\n\n`);
+    if (!response.ok) {
+      const errText = await response.text();
+      let errMsg = 'AI接続エラーが発生しました';
+      if (response.status === 401) errMsg = 'INVALID_KEY';
+      else if (response.status === 429) errMsg = 'RATE_LIMIT';
+      else if (response.status === 402) errMsg = 'QUOTA_EXCEEDED';
+      res.write(`data: ${JSON.stringify({ error: errMsg })}\n\n`);
+      res.end();
+      return;
+    }
+
+    const reader  = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const text = decoder.decode(value, { stream: true });
+      for (const line of text.split('\n')) {
+        const t = line.trim();
+        if (!t || t === 'data: [DONE]') continue;
+        if (t.startsWith('data: ')) {
+          try {
+            const json = JSON.parse(t.slice(6));
+            const content = json.choices?.[0]?.delta?.content;
+            if (content) res.write(`data: ${JSON.stringify({ content })}\n\n`);
+          } catch {}
+        }
       }
     }
 
@@ -116,16 +98,8 @@ app.post('/api/explain', async (req, res) => {
     res.end();
 
   } catch (err) {
-    console.error('OpenAI error:', err.message);
-    // 401エラーの場合はAIを無効化
-    if (err.status === 401) {
-      aiEnabled = false;
-      console.warn('⚠️ 401エラー: AI機能を無効化しました');
-    }
-    const msg = err.status === 401
-      ? 'AI_DISABLED'
-      : `AI接続エラー: ${err.message}`;
-    res.write(`data: ${JSON.stringify({ error: msg })}\n\n`);
+    console.error('Proxy error:', err.message);
+    res.write(`data: ${JSON.stringify({ error: 'AI接続エラー: ' + err.message })}\n\n`);
     res.end();
   }
 });
