@@ -236,6 +236,49 @@
     .ai-sec-title.meaning { color: var(--blue-main); }
     .ai-sec-title.talk    { color: var(--accent); }
     .ai-sec-title.related { color: var(--green); }
+    .ai-sec-title.refs    { color: #6a1b9a; }
+
+    /* ===== 参考文献 ===== */
+    .refs-list { display: flex; flex-direction: column; gap: 10px; }
+    .ref-item {
+      background: #f9f0ff; border: 1px solid #e1bee7;
+      border-left: 4px solid #9c27b0;
+      border-radius: 0 10px 10px 0;
+      padding: 11px 14px; transition: background .2s;
+    }
+    .ref-item:hover { background: #f3e5f5; }
+    .ref-item a { text-decoration: none; color: inherit; display: block; }
+    .ref-badge {
+      display: inline-block; font-size: .65rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 20px; margin-bottom: 5px;
+    }
+    .ref-badge.pubmed { background: #e3f2fd; color: #1565c0; }
+    .ref-badge.wiki-ja { background: #e8f5e9; color: #2e7d32; }
+    .ref-badge.wiki-en { background: #fff3e0; color: #e65100; }
+    .ref-title {
+      font-size: .83rem; font-weight: 700; line-height: 1.5;
+      color: #4a148c; margin-bottom: 3px;
+    }
+    .ref-title-ja {
+      font-size: .78rem; color: var(--gray-600); line-height: 1.5;
+      margin-bottom: 3px; font-style: italic;
+    }
+    .ref-meta {
+      font-size: .72rem; color: var(--gray-600); line-height: 1.4;
+    }
+    .ref-url {
+      font-size: .72rem; color: #9c27b0; word-break: break-all;
+      margin-top: 3px; opacity: .8;
+    }
+    .refs-loading {
+      display: none; align-items: center; gap: 8px;
+      font-size: .82rem; color: var(--gray-600); padding: 6px 0;
+    }
+    .refs-spinner {
+      width: 14px; height: 14px; flex-shrink: 0;
+      border: 2px solid #e1bee7; border-top-color: #9c27b0;
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
     .ai-meaning { font-size: .9rem; line-height: 1.8; }
     .talk-box {
       background: var(--accent-light); border-left: 4px solid var(--accent);
@@ -475,6 +518,14 @@
         <div class="ai-sec" id="aiRelatedSec" style="display:none">
           <div class="ai-sec-title related">🔗 関連用語</div>
           <div class="related-chips" id="aiRelated"></div>
+        </div>
+        <!-- 参考文献セクション -->
+        <div class="ai-sec" id="aiRefsSec">
+          <div class="ai-sec-title refs">📚 参考文献・エビデンス</div>
+          <div class="refs-loading" id="refsLoading">
+            <div class="refs-spinner"></div><span>PubMed・Wikipediaを検索中…</span>
+          </div>
+          <div class="refs-list" id="refsList"></div>
         </div>
       </div>
     </div>
@@ -803,6 +854,8 @@ async function doAISearch(term) {
       if (streamBuf) streamRender(streamBuf, parsed);
     }
     finalRender(streamBuf, parsed);
+    // AI解説完了後に参考文献を非同期取得
+    fetchReferences(term.trim());
 
   } catch(e) {
     if (e.name === 'AbortError') return;
@@ -846,6 +899,74 @@ function finalRender(buf, parsed) {
       parsed.related.map(r=>`<span class="related-chip" data-term="${esc(r)}">${esc(r)}</span>`).join('');
   } else {
     document.getElementById('aiRelatedSec').style.display = 'none';
+  }
+  // 参考文献エリアを初期化（ローディング表示）
+  document.getElementById('refsList').innerHTML = '';
+  document.getElementById('refsLoading').style.display = 'flex';
+}
+
+// ============================================================
+//  参考文献取得・表示
+// ============================================================
+async function fetchReferences(term) {
+  const loadingEl = document.getElementById('refsLoading');
+  const listEl    = document.getElementById('refsList');
+  loadingEl.style.display = 'flex';
+  listEl.innerHTML = '';
+
+  try {
+    const resp = await fetch('/api/references', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ term })
+    });
+    const data = await resp.json();
+    loadingEl.style.display = 'none';
+
+    const items = [];
+
+    // PubMed論文（英語タイトル＋日本語訳）
+    if (data.papers && data.papers.length > 0) {
+      data.papers.forEach((p) => {
+        const titleJaHtml = p.titleJa
+          ? `<div class="ref-title-ja">🇯🇵 ${esc(p.titleJa)}</div>`
+          : '';
+        items.push(`
+          <div class="ref-item">
+            <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
+              <span class="ref-badge pubmed">📄 PubMed</span>
+              <div class="ref-title">${esc(p.title)}</div>
+              ${titleJaHtml}
+              <div class="ref-meta">${esc(p.authors)}${p.authors && p.year ? ' · ' : ''}${esc(p.year)}${p.journal ? ' · ' + esc(p.journal) : ''}</div>
+              <div class="ref-url">🔗 ${esc(p.url)}</div>
+            </a>
+          </div>`);
+      });
+    }
+
+    // Wikipedia
+    if (data.wiki) {
+      const langLabel = data.wiki.lang === 'ja' ? '🌐 Wikipedia（日本語）' : '🌐 Wikipedia（English）';
+      const badgeCls  = data.wiki.lang === 'ja' ? 'wiki-ja' : 'wiki-en';
+      items.push(`
+        <div class="ref-item">
+          <a href="${esc(data.wiki.url)}" target="_blank" rel="noopener noreferrer">
+            <span class="ref-badge ${badgeCls}">${langLabel}</span>
+            <div class="ref-title">${esc(data.wiki.title)}</div>
+            <div class="ref-url">🔗 ${esc(data.wiki.url)}</div>
+          </a>
+        </div>`);
+    }
+
+    if (items.length === 0) {
+      listEl.innerHTML = '<p style="font-size:.82rem;color:var(--gray-600);padding:6px 0;">関連する文献が見つかりませんでした。</p>';
+    } else {
+      listEl.innerHTML = items.join('');
+    }
+
+  } catch(e) {
+    loadingEl.style.display = 'none';
+    listEl.innerHTML = '<p style="font-size:.82rem;color:var(--gray-600);padding:6px 0;">文献取得中にエラーが発生しました。</p>';
   }
 }
 

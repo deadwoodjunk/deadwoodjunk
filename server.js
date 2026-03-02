@@ -12,7 +12,177 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ── ヘルスチェック ─────────────────────────────────────────
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
-// ── AI 用語解説 プロキシ API（ストリーミング） ─────────────
+// ============================================================
+//  MyMemory 無料翻訳 API（英語→日本語）
+// ============================================================
+async function translateToJa(text) {
+  if (!text || text.trim().length === 0) return '';
+  try {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0, 500))}&langpair=en|ja`;
+    const res  = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    const data = await res.json();
+    const trans = data?.responseData?.translatedText || '';
+    // MyMemoryが翻訳失敗すると英語のまま返すことがある
+    if (trans && trans.toLowerCase() !== text.toLowerCase().slice(0, 50)) {
+      return trans;
+    }
+    return '';
+  } catch (e) {
+    console.warn('Translation error:', e.message);
+    return '';
+  }
+}
+
+// ============================================================
+//  EuropePMC 論文検索（最大3件・関連度順）
+// ============================================================
+async function searchEuropePMC(term) {
+  try {
+    // 英語検索クエリマッピング
+    const termMap = {
+      'llm': 'large language model pharmaceutical',
+      'alphafold': 'AlphaFold protein structure drug discovery',
+      '構造ベース創薬': 'structure-based drug design AI',
+      'sbdd': 'structure-based drug design',
+      '低分子創薬': 'small molecule drug discovery AI',
+      '分散型臨床試験': 'decentralized clinical trial DCT',
+      'dct': 'decentralized clinical trial',
+      '治験効率化': 'clinical trial efficiency AI',
+      'アダプティブデザイン': 'adaptive design clinical trial',
+      'rwd': 'real world data evidence pharmaceutical',
+      'rwe': 'real world evidence drug approval',
+      'バイオマーカー': 'biomarker drug development clinical trial',
+      'マルチオミクス': 'multi-omics drug discovery',
+      'バイオインフォマティクス': 'bioinformatics drug discovery',
+      'admet': 'ADMET prediction machine learning',
+      'admet予測': 'ADMET prediction AI drug discovery',
+      'ファーマコビジランス': 'pharmacovigilance AI automation',
+      'pv': 'pharmacovigilance signal detection AI',
+      '希少疾患': 'rare disease drug development AI',
+      'オーファン': 'orphan drug rare disease',
+      'ectd': 'eCTD regulatory submission AI',
+      'レギュラトリーサイエンス': 'regulatory science AI pharmaceutical',
+      '生成ai': 'generative AI drug discovery',
+      '機械学習': 'machine learning drug discovery',
+      'ml': 'machine learning pharmaceutical drug discovery',
+      'nlp': 'natural language processing pharmaceutical',
+      '自然言語処理': 'natural language processing clinical trial',
+      'バーチャルスクリーニング': 'virtual screening machine learning',
+      'de novo': 'de novo drug design generative AI',
+    };
+
+    const termLower = term.toLowerCase().replace(/[（(）)\s]/g, '').trim();
+    const searchQuery = termMap[termLower] || `${term} pharmaceutical drug discovery`;
+
+    // EuropePMC REST API（sort未指定＝デフォルト関連度順）
+    const searchUrl = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(searchQuery)}&resultType=lite&pageSize=5&format=json`;
+    const res  = await fetch(searchUrl, { signal: AbortSignal.timeout(8000) });
+    const data = await res.json();
+    const hits = data?.resultList?.result || [];
+    if (!hits.length) return [];
+
+    // 上位3件（PMIDあるものを優先）
+    const top3 = hits
+      .filter(h => h.title && h.pmid)
+      .slice(0, 3);
+
+    // 各論文タイトルを日本語に翻訳（並行処理）
+    const withTrans = await Promise.all(top3.map(async (h) => {
+      const titleJa = await translateToJa(h.title);
+      const authors = h.authorString
+        ? h.authorString.split(',').slice(0, 3).map(a => a.trim()).join(', ') +
+          (h.authorString.split(',').length > 3 ? ' et al.' : '')
+        : '';
+      return {
+        pmid:    h.pmid,
+        title:   h.title,
+        titleJa,
+        journal: h.journalTitle || h.source || '',
+        authors,
+        year:    h.pubYear || '',
+        url:     `https://pubmed.ncbi.nlm.nih.gov/${h.pmid}/`
+      };
+    }));
+
+    return withTrans;
+
+  } catch (e) {
+    console.warn('EuropePMC search error:', e.message);
+    return [];
+  }
+}
+
+// ============================================================
+//  Wikipedia 日本語ページ検索
+// ============================================================
+const WIKI_UA = 'PharmaAIApp/1.0 (pharmaai@example.com)';
+
+async function searchWikipedia(term) {
+  try {
+    // まず日本語Wikipediaで検索
+    const searchUrl = `https://ja.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(term)}&srlimit=1&format=json`;
+    const res  = await fetch(searchUrl, {
+      signal: AbortSignal.timeout(6000),
+      headers: { 'User-Agent': WIKI_UA }
+    });
+    const data = await res.json();
+    const hits = data?.query?.search || [];
+    if (hits.length) {
+      const page = hits[0];
+      return {
+        title: page.title,
+        url:   `https://ja.wikipedia.org/wiki/${encodeURIComponent(page.title)}`,
+        lang:  'ja'
+      };
+    }
+    // 日本語で見つからなければ英語版を試す
+    return await searchWikipediaEn(term);
+  } catch (e) {
+    console.warn('Wikipedia JP error:', e.message);
+    try { return await searchWikipediaEn(term); } catch { return null; }
+  }
+}
+
+async function searchWikipediaEn(term) {
+  try {
+    const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(term)}&srlimit=1&format=json`;
+    const res  = await fetch(searchUrl, {
+      signal: AbortSignal.timeout(6000),
+      headers: { 'User-Agent': WIKI_UA }
+    });
+    const data = await res.json();
+    const hits = data?.query?.search || [];
+    if (!hits.length) return null;
+    const page = hits[0];
+    return {
+      title: page.title,
+      url:   `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title)}`,
+      lang:  'en'
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+// ============================================================
+//  参考文献 API エンドポイント
+// ============================================================
+app.post('/api/references', async (req, res) => {
+  const { term } = req.body;
+  if (!term || !term.trim()) {
+    return res.status(400).json({ error: '用語が必要です' });
+  }
+  console.log(`▶ /api/references  term=${term}`);
+  const [papers, wiki] = await Promise.all([
+    searchEuropePMC(term.trim()),
+    searchWikipedia(term.trim())
+  ]);
+  res.json({ papers, wiki });
+});
+
+// ============================================================
+//  AI 用語解説 プロキシ API（ストリーミング）
+// ============================================================
 app.post('/api/explain', async (req, res) => {
   const { term, apiKey, provider } = req.body;
 
@@ -43,14 +213,11 @@ app.post('/api/explain', async (req, res) => {
   "related": ["関連用語1", "関連用語2", "関連用語3"]
 }`;
 
-  // プロバイダー判定
-  const isGroq = provider === 'groq' || apiKey.trim().startsWith('gsk_');
+  const isGroq   = provider === 'groq' || apiKey.trim().startsWith('gsk_');
   const endpoint = isGroq
     ? 'https://api.groq.com/openai/v1/chat/completions'
     : 'https://api.openai.com/v1/chat/completions';
-
-  // モデル選択
-  const model = isGroq ? 'llama-3.1-8b-instant' : 'gpt-3.5-turbo';
+  const model    = isGroq ? 'llama-3.1-8b-instant' : 'gpt-3.5-turbo';
 
   console.log(`▶ /api/explain  provider=${isGroq?'groq':'openai'}  model=${model}  term=${term}`);
 
