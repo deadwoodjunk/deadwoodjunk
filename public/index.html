@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PharmaInfo Japan — 医療用医薬品 営業支援ツール</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue-dark:   #0a3d6b;
+      --blue-main:   #1565c0;
+      --blue-light:  #1e88e5;
+      --blue-pale:   #e3f2fd;
+      --blue-bg:     #f0f7ff;
+      --white:       #ffffff;
+      --gray-100:    #f5f5f5;
+      --gray-300:    #cfd8dc;
+      --gray-600:    #546e7a;
+      --gray-800:    #263238;
+      --accent:      #00acc1;
+      --accent-light:#e0f7fa;
+      --green:       #2e7d32;
+      --green-light: #e8f5e9;
+      --red:         #c62828;
+      --red-light:   #ffebee;
+      --orange:      #e65100;
+      --orange-light:#fff3e0;
+      --purple:      #6a1b9a;
+      --purple-light:#f3e5f5;
+      --shadow-sm:   0 2px 8px rgba(21,101,192,.12);
+      --shadow-md:   0 8px 32px rgba(21,101,192,.18);
+      --radius:      14px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background: var(--blue-bg); color: var(--gray-800); min-height: 100vh;
+    }
+
+    /* ===== Header ===== */
+    header {
+      background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-main) 60%, var(--blue-light) 100%);
+      color: var(--white); padding: 0 20px;
+      box-shadow: 0 2px 12px rgba(10,61,107,.3);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-inner {
+      max-width: 960px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; height: 56px;
+    }
+    .header-logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon {
+      width: 34px; height: 34px; background: rgba(255,255,255,.18); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+    }
+    .header-title { font-size: 1.05rem; font-weight: 700; }
+    .header-sub   { font-size: .65rem; opacity: .75; letter-spacing: .05em; }
+    .header-badge {
+      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28);
+      border-radius: 20px; padding: 4px 11px; font-size: .7rem; font-weight: 700;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .ai-dot { width: 7px; height: 7px; border-radius: 50%; background: #69f0ae; animation: pulse 1.8s infinite; }
+    .ai-dot.off { background: #ffb300; animation: none; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
+
+    /* ===== Hero ===== */
+    .hero {
+      background: linear-gradient(160deg, var(--blue-dark) 0%, var(--blue-main) 55%, var(--accent) 100%);
+      padding: 48px 20px 56px; text-align: center; color: var(--white);
+    }
+    .hero-eyebrow { font-size: .73rem; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; opacity: .75; margin-bottom: 8px; }
+    .hero-heading { font-size: clamp(1.45rem, 4.5vw, 2.1rem); font-weight: 800; line-height: 1.3; margin-bottom: 8px; }
+    .hero-desc { font-size: .88rem; opacity: .8; margin-bottom: 28px; }
+    .search-wrap { max-width: 640px; margin: 0 auto; }
+    .search-row { display: flex; gap: 8px; position: relative; }
+    .search-input {
+      flex: 1; padding: 16px 16px 16px 48px; font-size: .98rem; border: none; border-radius: 50px;
+      outline: none; box-shadow: 0 4px 20px rgba(0,0,0,.22);
+      color: var(--gray-800); background: var(--white); transition: box-shadow .2s;
+    }
+    .search-input:focus { box-shadow: 0 4px 28px rgba(0,172,193,.5); }
+    .search-input::placeholder { color: var(--gray-300); }
+    .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 1.1rem; color: var(--blue-main); pointer-events: none; }
+    .search-btn {
+      padding: 0 22px; background: var(--accent); color: var(--white);
+      border: none; border-radius: 50px; font-size: .93rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,172,193,.4);
+      transition: all .2s; display: flex; align-items: center; gap: 6px;
+    }
+    .search-btn:hover:not(:disabled) { background: #0097a7; transform: translateY(-1px); }
+    .search-btn:disabled { opacity: .55; cursor: not-allowed; }
+    .hint-row { margin-top: 12px; display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; }
+    .hint-chip {
+      background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22);
+      border-radius: 20px; padding: 4px 12px; cursor: pointer; font-size: .73rem; transition: background .15s;
+    }
+    .hint-chip:hover { background: rgba(255,255,255,.26); }
+
+    /* ===== Main ===== */
+    main { max-width: 960px; margin: 0 auto; padding: 32px 14px 60px; }
+
+    /* ===== AI Result Card ===== */
+    .ai-area { margin-bottom: 32px; }
+    .ai-card {
+      background: var(--white); border-radius: var(--radius);
+      box-shadow: var(--shadow-md); border: 2px solid var(--blue-pale);
+      overflow: hidden; display: none;
+    }
+    .ai-card.visible { display: block; animation: fadeUp .3s ease; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    .ai-card-header {
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue-main));
+      color: var(--white); padding: 18px 20px;
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .ai-card-icon {
+      width: 52px; height: 52px; border-radius: 14px; background: rgba(255,255,255,.17);
+      display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0;
+    }
+    .ai-card-header-info { flex: 1; }
+    .ai-card-brand { font-size: 1.4rem; font-weight: 800; line-height: 1.2; }
+    .ai-card-generic { font-size: .82rem; opacity: .8; margin-top: 3px; }
+    .ai-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .ai-tag {
+      font-size: .7rem; font-weight: 700; padding: 3px 10px;
+      background: rgba(255,255,255,.2); border-radius: 20px;
+    }
+    .ai-loading {
+      display: none; align-items: center; gap: 10px;
+      padding: 26px 20px; color: var(--gray-600); font-size: .9rem;
+    }
+    .spinner {
+      width: 20px; height: 20px; flex-shrink: 0;
+      border: 3px solid var(--blue-pale); border-top-color: var(--blue-main);
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .ai-error {
+      display: none; align-items: center; gap: 8px;
+      padding: 18px 20px; color: var(--red); background: var(--red-light); font-size: .88rem;
+    }
+    .ai-body { padding: 0; display: none; }
+
+    /* セクション共通 */
+    .info-sec {
+      padding: 16px 20px; border-bottom: 1px solid var(--blue-pale);
+    }
+    .info-sec:last-child { border-bottom: none; }
+    .info-sec-title {
+      font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+    }
+    .info-sec-title.overview   { color: var(--blue-main); }
+    .info-sec-title.strategy   { color: var(--green); }
+    .info-sec-title.competitor { color: var(--orange); }
+    .info-sec-title.challenges { color: var(--red); }
+    .info-sec-title.mrtalk     { color: var(--accent); }
+    .info-sec-title.refs       { color: var(--purple); }
+
+    /* 製品概要 */
+    .overview-text { font-size: .9rem; line-height: 1.8; }
+
+    /* 製品戦略 */
+    .strategy-box {
+      background: var(--green-light); border-left: 4px solid var(--green);
+      border-radius: 0 10px 10px 0; padding: 13px 15px; font-size: .88rem; line-height: 1.8;
+    }
+
+    /* 競合情報 */
+    .competitor-list { display: flex; flex-direction: column; gap: 8px; }
+    .competitor-item {
+      background: var(--orange-light); border-left: 4px solid var(--orange);
+      border-radius: 0 10px 10px 0; padding: 10px 14px;
+    }
+    .competitor-name { font-size: .88rem; font-weight: 700; color: var(--orange); margin-bottom: 3px; }
+    .competitor-company { font-size: .75rem; color: var(--gray-600); margin-bottom: 4px; }
+    .competitor-point { font-size: .83rem; line-height: 1.6; }
+
+    /* 課題・リスク */
+    .challenges-box {
+      background: var(--red-light); border-left: 4px solid var(--red);
+      border-radius: 0 10px 10px 0; padding: 13px 15px; font-size: .88rem; line-height: 1.8;
+    }
+
+    /* MR訴求トーク */
+    .mrtalk-box {
+      background: var(--accent-light); border-left: 4px solid var(--accent);
+      border-radius: 0 10px 10px 0; padding: 13px 15px;
+      font-size: .87rem; line-height: 1.8; position: relative;
+    }
+    .mrtalk-box::before { content:'🗣'; position:absolute; top:10px; right:12px; opacity:.4; font-size:1.1rem; }
+
+    /* 参考文献 */
+    .refs-list { display: flex; flex-direction: column; gap: 10px; }
+    .ref-item {
+      background: var(--purple-light); border: 1px solid #e1bee7; border-left: 4px solid var(--purple);
+      border-radius: 0 10px 10px 0; padding: 11px 14px; transition: background .2s;
+    }
+    .ref-item:hover { background: #ede7f6; }
+    .ref-item a { text-decoration: none; color: inherit; display: block; }
+    .ref-badge {
+      display: inline-block; font-size: .65rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 20px; margin-bottom: 5px;
+    }
+    .ref-badge.pubmed  { background: var(--blue-pale); color: var(--blue-main); }
+    .ref-badge.pmda    { background: #e8f5e9; color: var(--green); }
+    .ref-badge.wiki-ja { background: var(--green-light); color: var(--green); }
+    .ref-badge.wiki-en { background: var(--orange-light); color: var(--orange); }
+    .ref-title    { font-size: .83rem; font-weight: 700; line-height: 1.5; color: var(--purple); margin-bottom: 3px; }
+    .ref-title-ja { font-size: .78rem; color: var(--gray-600); line-height: 1.5; margin-bottom: 3px; font-style: italic; }
+    .ref-meta     { font-size: .72rem; color: var(--gray-600); }
+    .ref-url      { font-size: .72rem; color: var(--purple); word-break: break-all; margin-top: 3px; opacity: .8; }
+    .refs-loading {
+      display: none; align-items: center; gap: 8px;
+      font-size: .82rem; color: var(--gray-600); padding: 6px 0;
+    }
+    .refs-spinner {
+      width: 14px; height: 14px; flex-shrink: 0;
+      border: 2px solid #e1bee7; border-top-color: var(--purple);
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    .cursor {
+      display: inline-block; width: 2px; height: 1em;
+      background: var(--blue-main); vertical-align: text-bottom;
+      animation: blink .85s steps(1) infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ===== Sample Cards ===== */
+    .section-label {
+      font-size: .78rem; font-weight: 700; color: var(--blue-main);
+      letter-spacing: .08em; text-transform: uppercase;
+      margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::after { content:''; flex:1; height:1px; background:var(--gray-300); }
+    .filter-bar { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:20px; }
+    .filter-btn {
+      padding: 5px 14px; border-radius: 20px; border: 2px solid var(--gray-300);
+      background: var(--white); color: var(--gray-600); font-size: .8rem;
+      cursor: pointer; font-weight: 600; transition: all .2s;
+    }
+    .filter-btn:hover  { border-color: var(--blue-light); color: var(--blue-main); }
+    .filter-btn.active { background: var(--blue-main); border-color: var(--blue-main); color: var(--white); }
+    .sample-search-wrap { margin-bottom: 16px; position: relative; }
+    .sample-search-input {
+      width: 100%; padding: 10px 14px 10px 38px; border: 2px solid var(--gray-300);
+      border-radius: 10px; font-size: .88rem; outline: none; background: var(--white); transition: border-color .2s;
+    }
+    .sample-search-input:focus { border-color: var(--blue-light); }
+    .sample-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: .95rem; pointer-events: none; }
+    .result-count { font-size: .83rem; color: var(--gray-600); margin-bottom: 16px; }
+    .result-count strong { color: var(--blue-main); }
+    .cards-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;
+    }
+    @media (max-width: 560px) { .cards-grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm);
+      overflow: hidden; transition: box-shadow .25s, transform .25s;
+      border: 1px solid rgba(21,101,192,.08); cursor: pointer;
+    }
+    .card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+    .card-header {
+      padding: 14px 16px 10px; border-bottom: 1px solid var(--blue-pale);
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .card-icon {
+      width: 42px; height: 42px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;
+    }
+    .card-brand  { font-size: 1rem; font-weight: 800; color: var(--blue-dark); line-height: 1.2; margin-bottom: 2px; }
+    .card-generic{ font-size: .72rem; color: var(--gray-600); margin-bottom: 4px; }
+    .card-cat    { display:inline-block; font-size:.68rem; font-weight:700; padding:2px 9px; border-radius:20px; }
+    .card-body   { padding: 13px 16px; }
+    .card-sec    { font-size:.68rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; margin-bottom:5px; display:flex; align-items:center; gap:5px; }
+    .card-sec.strategy   { color: var(--green); }
+    .card-sec.competitor { color: var(--orange); }
+    .card-text   { font-size:.83rem; line-height:1.7; margin-bottom:10px; }
+    .card-comp   {
+      background: var(--orange-light); border-left: 3px solid var(--orange);
+      border-radius: 0 8px 8px 0; padding: 8px 12px; font-size: .8rem; line-height: 1.6;
+    }
+
+    /* カテゴリ色 */
+    .cat-dm       { background:#e8f5e9; color:#2e7d32; }
+    .cat-onco     { background:#fce4ec; color:#c62828; }
+    .cat-cardio   { background:#e3f2fd; color:#1565c0; }
+    .cat-immuno   { background:#f3e5f5; color:#6a1b9a; }
+    .cat-neuro    { background:#fff3e0; color:#e65100; }
+    .cat-other    { background:#f5f5f5; color:#546e7a; }
+    .cat-dm-icon      { background:#e8f5e9; }
+    .cat-onco-icon    { background:#fce4ec; }
+    .cat-cardio-icon  { background:#e3f2fd; }
+    .cat-immuno-icon  { background:#f3e5f5; }
+    .cat-neuro-icon   { background:#fff3e0; }
+    .cat-other-icon   { background:#f5f5f5; }
+
+    mark { background:#fff176; border-radius:3px; padding:0 2px; color:inherit; }
+    .no-result { text-align:center; padding:48px 16px; color:var(--gray-600); display:none; }
+    .no-result .icon { font-size:2.6rem; margin-bottom:12px; }
+    footer {
+      text-align:center; padding:22px 16px; font-size:.75rem; color:var(--gray-600);
+      border-top:1px solid var(--gray-300); background:var(--white);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<header>
+  <div class="header-inner">
+    <div class="header-logo">
+      <div class="logo-icon">💊</div>
+      <div>
+        <div class="header-title">PharmaInfo Japan</div>
+        <div class="header-sub">医療用医薬品 MR営業支援ツール</div>
+      </div>
+    </div>
+    <div class="header-badge">
+      <span class="ai-dot" id="aiDot"></span>
+      <span id="badgeText">確認中…</span>
+    </div>
+  </div>
+</header>
+
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <p class="hero-eyebrow">MR × AI 医薬品情報支援</p>
+  <h1 class="hero-heading">医薬品名を入れるだけで<br>製品戦略・競合・課題を即表示</h1>
+  <p class="hero-desc">ジャディアンス、キイトルーダなど日本の医療用医薬品をAIが即座に分析</p>
+  <div class="search-wrap">
+    <div class="search-row">
+      <span class="search-icon">💊</span>
+      <input id="searchInput" class="search-input" type="text"
+        placeholder="例：ジャディアンス、キイトルーダ、オゼンピック…" autocomplete="off"/>
+      <button id="searchBtn" class="search-btn">
+        <span>✨</span><span id="searchBtnText">AI分析</span>
+      </button>
+    </div>
+    <div class="hint-row" id="hintRow">
+      <span class="hint-chip" data-term="ジャディアンス">ジャディアンス</span>
+      <span class="hint-chip" data-term="キイトルーダ">キイトルーダ</span>
+      <span class="hint-chip" data-term="オゼンピック">オゼンピック</span>
+      <span class="hint-chip" data-term="タグリッソ">タグリッソ</span>
+      <span class="hint-chip" data-term="エンレスト">エンレスト</span>
+      <span class="hint-chip" data-term="マンジャロ">マンジャロ</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Main ===== -->
+<main>
+  <!-- AI Result Card -->
+  <div class="ai-area">
+    <div class="ai-card" id="aiCard">
+      <div class="ai-card-header">
+        <div class="ai-card-icon" id="aiCardIcon">💊</div>
+        <div class="ai-card-header-info">
+          <div class="ai-card-brand" id="aiCardBrand">—</div>
+          <div class="ai-card-generic" id="aiCardGeneric"></div>
+          <div class="ai-card-tags">
+            <span class="ai-tag" id="aiCardCompany"></span>
+            <span class="ai-tag" id="aiCardCategory"></span>
+          </div>
+        </div>
+      </div>
+      <div class="ai-loading" id="aiLoading">
+        <div class="spinner"></div><span>AIが分析中です…</span>
+      </div>
+      <div class="ai-error" id="aiError">
+        <span>⚠️</span><span id="aiErrorMsg"></span>
+      </div>
+      <div class="ai-body" id="aiBody">
+        <!-- 製品概要 -->
+        <div class="info-sec">
+          <div class="info-sec-title overview">💊 製品概要</div>
+          <div class="overview-text" id="aiOverview"></div>
+        </div>
+        <!-- 製品戦略 -->
+        <div class="info-sec">
+          <div class="info-sec-title strategy">📈 製品戦略・訴求ポイント</div>
+          <div class="strategy-box" id="aiStrategy"></div>
+        </div>
+        <!-- 競合情報 -->
+        <div class="info-sec" id="aiCompetitorSec">
+          <div class="info-sec-title competitor">⚔️ 競合情報</div>
+          <div class="competitor-list" id="aiCompetitors"></div>
+        </div>
+        <!-- 課題・リスク -->
+        <div class="info-sec">
+          <div class="info-sec-title challenges">⚠️ 課題・リスク</div>
+          <div class="challenges-box" id="aiChallenges"></div>
+        </div>
+        <!-- MRトーク -->
+        <div class="info-sec">
+          <div class="info-sec-title mrtalk">🗣 MR訴求トーク例</div>
+          <div class="mrtalk-box" id="aiMrTalk"></div>
+        </div>
+        <!-- 参考文献 -->
+        <div class="info-sec">
+          <div class="info-sec-title refs">📚 参考文献・エビデンス</div>
+          <div class="refs-loading" id="refsLoading">
+            <div class="refs-spinner"></div><span>PMDA・PubMed・Wikipediaを検索中…</span>
+          </div>
+          <div class="refs-list" id="refsList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sample Cards -->
+  <div class="section-label">主要医薬品サンプル <span style="font-size:.7rem;font-weight:400;color:var(--gray-600);margin-left:4px;">クリックでAI分析</span></div>
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-btn active" data-cat="all">すべて</button>
+    <button class="filter-btn" data-cat="糖尿病">🩸 糖尿病</button>
+    <button class="filter-btn" data-cat="がん">🎗 がん</button>
+    <button class="filter-btn" data-cat="循環器">❤️ 循環器</button>
+    <button class="filter-btn" data-cat="免疫・炎症">🛡 免疫・炎症</button>
+    <button class="filter-btn" data-cat="その他">💡 その他</button>
+  </div>
+  <div class="sample-search-wrap">
+    <span class="sample-search-icon">🔍</span>
+    <input id="sampleSearch" class="sample-search-input" type="text" placeholder="薬品名・一般名で絞り込む…"/>
+  </div>
+  <div class="result-count" id="resultCount"></div>
+  <div class="cards-grid" id="cardsGrid"></div>
+  <div class="no-result" id="noResult">
+    <div class="icon">🔍</div>
+    <h3>一致する薬品が見つかりません</h3>
+    <p style="font-size:.84rem;margin-top:6px;">上の検索窓で直接AIに分析させることができます</p>
+  </div>
+</main>
+
+<footer>
+  © 2025 PharmaInfo Japan &nbsp;|&nbsp; Powered by Groq AI &nbsp;|&nbsp; MR営業支援ツール &nbsp;|&nbsp;
+  <span style="color:#e53935;">※本ツールの情報は参考用です。必ず添付文書・PMDAを確認してください。</span>
+</footer>
+
+<script>
+// ============================================================
+//  Sample data（主要医薬品10件）
+// ============================================================
+const SAMPLES = [
+  {
+    brand: "ジャディアンス", generic: "エンパグリフロジン", company: "日本ベーリンガーインゲルハイム/イーライリリー",
+    category: "糖尿病", catKey: "糖尿病", icon: "🩸",
+    indication: "2型糖尿病、慢性心不全、慢性腎臓病",
+    strategy: "SGLT2阻害薬として心保護・腎保護エビデンス（EMPA-REG OUTCOME試験）が強み。心不全・CKD適応追加により循環器・腎臓内科にも訴求可能。ガイドライン第1選択薬として採用増加中。",
+    competitor: "フォシーガ（アストラゼネカ）、カナグル（田辺三菱）など同クラスSGLT2阻害薬との差別化がカギ。心血管イベント抑制の豊富なエビデンスが強み。"
+  },
+  {
+    brand: "キイトルーダ", generic: "ペムブロリズマブ", company: "MSD",
+    category: "がん", catKey: "がん", icon: "🎗",
+    indication: "非小細胞肺がん・悪性黒色腫・胃がん・食道がんなど多数",
+    strategy: "PD-1阻害薬として幅広いがん腫に承認。MSI-Hという腫瘍遺伝子特性での横断的適応が特徴。TMB-H適応も取得。コンパニオン診断との連携でターゲット患者を明確化。",
+    competitor: "オプジーボ（BMS）との競合が主。適応取得の早さと適応がん種の多さが強み。第1選択での採用を目指すEGFR/ALK陰性NSCLCで特に重要。"
+  },
+  {
+    brand: "オゼンピック", generic: "セマグルチド（注射）", company: "ノボノルディスク",
+    category: "糖尿病", catKey: "糖尿病", icon: "💉",
+    indication: "2型糖尿病",
+    strategy: "週1回皮下注のGLP-1受容体作動薬。SUSTAIN試験で高い血糖降下・体重減少効果を実証。心血管リスク低下（SUSTAIN-6）も訴求ポイント。経口製剤（リベルサス）との組み合わせ戦略も展開。",
+    competitor: "マンジャロ（GIP/GLP-1）、ビクトーザとの差別化。週1回投与の利便性と豊富なエビデンスが強み。肥満症適応（ウゴービ）取得で市場拡大中。"
+  },
+  {
+    brand: "タグリッソ", generic: "オシメルチニブ", company: "アストラゼネカ",
+    category: "がん", catKey: "がん", icon: "🫁",
+    indication: "EGFR変異陽性非小細胞肺がん（1次・2次治療）",
+    strategy: "第3世代EGFR-TKIとして脳転移にも有効な中枢神経系移行性が特徴。FLAURA試験で1次治療としての優越性を証明。T790M変異に対する2次治療と術後補助療法（ADAURA）でも承認取得。",
+    competitor: "ジオトリフ、イレッサなど第1・2世代EGFR-TKIとの差別化。耐性変異克服と脳転移有効性がキーポイント。"
+  },
+  {
+    brand: "エンレスト", generic: "サクビトリル/バルサルタン", company: "ノバルティス",
+    category: "循環器", catKey: "循環器", icon: "❤️",
+    indication: "慢性心不全（HFrEF）",
+    strategy: "ARNI（アンジオテンシン受容体ネプリライシン阻害薬）という新作用機序。PARADIGM-HF試験でACE阻害薬比死亡率20%減。心不全ガイドライン最高推奨グレード取得。HFpEF適応も追加。",
+    competitor: "ACE阻害薬・ARBからの切り替え促進が主な営業課題。低血圧に注意が必要で導入ハードルが課題。"
+  },
+  {
+    brand: "マンジャロ", generic: "チルゼパチド", company: "イーライリリー",
+    category: "糖尿病", catKey: "糖尿病", icon: "⭐",
+    indication: "2型糖尿病",
+    strategy: "世界初のGIP/GLP-1デュアル受容体作動薬。SURPASS試験でセマグルチド比でも高い血糖・体重改善効果を実証。日本でも肥満症適応（ゼップバウンド）取得予定でさらなる市場拡大が見込まれる。",
+    competitor: "オゼンピック（セマグルチド）が主な競合。デュアル作用による優れた体重減少効果で差別化。SGLT2阻害薬との併用エビデンスも蓄積中。"
+  },
+  {
+    brand: "オプジーボ", generic: "ニボルマブ", company: "小野薬品工業/BMS",
+    category: "がん", catKey: "がん", icon: "🧬",
+    indication: "悪性黒色腫・非小細胞肺がん・胃がん・腎細胞がんなど",
+    strategy: "日本発のPD-1阻害薬として国内第1号承認の先行優位性。小野薬品との共同販売で国内に強固な基盤。各がん腫のガイドライン記載も充実。キイトルーダとの競合が最大の課題。",
+    competitor: "キイトルーダ（MSD）との直接競合。適応がん種や試験デザインの違いで個々の患者選択が判断基準となる。"
+  },
+  {
+    brand: "ヒュミラ", generic: "アダリムマブ", company: "アッヴィ",
+    category: "免疫・炎症", catKey: "免疫・炎症", icon: "🛡",
+    indication: "関節リウマチ・クローン病・潰瘍性大腸炎・乾癬など",
+    strategy: "TNF阻害薬として長年の豊富な臨床実績。関節リウマチの第1選択生物学的製剤。ただしバイオシミラー参入により市場シェアが低下。原薬の信頼性・製剤の安定供給を訴求。",
+    competitor: "バイオシミラー（ヒュミラBSなど）が最大の脅威。エンブレル（ファイザー）、アクテムラ（中外）など他機序との差別化も重要。"
+  },
+  {
+    brand: "イクスタンジ", generic: "エンザルタミド", company: "アステラス製薬/ファイザー",
+    category: "がん", catKey: "がん", icon: "🔬",
+    indication: "去勢抵抗性前立腺がん・非転移性去勢感受性前立腺がん",
+    strategy: "次世代アンドロゲン受容体阻害薬。PREVAIL試験・ARCHES試験で全生存期間延長を証明。日本でのアステラス製薬主導による強力なMR活動基盤。ホルモン感受性期からの早期導入が重要訴求。",
+    competitor: "ザイティガ（ヤンセン）、ニュベクオ（バイエル）との差別化。投与タイミング・副作用プロファイルが選択基準。"
+  },
+  {
+    brand: "スキリージ", generic: "リサンキズマブ", company: "アッヴィ",
+    category: "免疫・炎症", catKey: "免疫・炎症", icon: "✨",
+    indication: "局面型乾癬・関節症性乾癬・クローン病・潰瘍性大腸炎",
+    strategy: "IL-23p19選択的阻害薬として高い皮膚症状改善率（PASI100達成率）を訴求。12週1回投与の高い利便性。炎症性腸疾患適応追加で対象患者が大幅拡大。アッヴィ社の次世代免疫製剤として戦略製品。",
+    competitor: "コセンティクス（IL-17A）、トレムフィア（IL-23）との差別化。PASI100達成率の高さと長い投与間隔が強み。"
+  },
+];
+
+// ============================================================
+//  Helpers
+// ============================================================
+const catKeyMap = { "糖尿病":"dm","がん":"onco","循環器":"cardio","免疫・炎症":"immuno","その他":"other" };
+function getCatCls(c){ return catKeyMap[c]||"other"; }
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function unesc(s){ return s.replace(/\\n/g,'\n').replace(/\\t/g,'\t').replace(/\\"/g,'"').replace(/\\\\/g,'\\'); }
+function highlight(text, kw) {
+  if (!kw) return esc(text);
+  const ek = kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return esc(text).replace(new RegExp(ek,'gi'), m=>`<mark>${m}</mark>`);
+}
+
+// ============================================================
+//  AI 有効状態確認
+// ============================================================
+let aiEnabled = false;
+async function checkAIStatus() {
+  try {
+    const res  = await fetch('/api/health');
+    const data = await res.json();
+    aiEnabled = data.aiEnabled === true;
+  } catch { aiEnabled = false; }
+  const dot   = document.getElementById('aiDot');
+  const badge = document.getElementById('badgeText');
+  if (aiEnabled) { dot.classList.remove('off'); badge.textContent = 'AI 有効'; }
+  else           { dot.classList.add('off');    badge.textContent = 'AI 準備中'; }
+}
+
+// ============================================================
+//  Search
+// ============================================================
+function doSearch(term) {
+  if (!term.trim()) return;
+  if (!aiEnabled) { showSampleResult(term); return; }
+  doAISearch(term);
+}
+
+function showSampleResult(term) {
+  const q     = term.trim().toLowerCase();
+  const match = SAMPLES.find(s =>
+    s.brand.toLowerCase().includes(q) || s.generic.toLowerCase().includes(q) || s.indication.toLowerCase().includes(q)
+  );
+  const card = document.getElementById('aiCard');
+  card.classList.add('visible');
+  document.getElementById('aiLoading').style.display  = 'none';
+  document.getElementById('aiError').style.display    = 'none';
+  document.getElementById('aiBody').style.display     = 'none';
+  if (match) {
+    document.getElementById('aiCardBrand').textContent    = match.brand;
+    document.getElementById('aiCardGeneric').textContent  = match.generic;
+    document.getElementById('aiCardCompany').textContent  = match.company;
+    document.getElementById('aiCardCategory').textContent = match.catKey;
+    document.getElementById('aiCardIcon').textContent     = match.icon;
+    document.getElementById('aiOverview').textContent     = match.indication;
+    document.getElementById('aiStrategy').textContent     = match.strategy;
+    document.getElementById('aiCompetitors').innerHTML    = `<div class="competitor-item"><div class="competitor-point">${esc(match.competitor)}</div></div>`;
+    document.getElementById('aiChallenges').textContent   = '';
+    document.getElementById('aiMrTalk').textContent       = '';
+    document.getElementById('aiBody').style.display       = 'block';
+    document.getElementById('refsLoading').style.display  = 'none';
+    document.getElementById('refsList').innerHTML         = '';
+  } else {
+    document.getElementById('aiCardBrand').textContent = term.trim();
+    document.getElementById('aiCardIcon').textContent  = '🔍';
+    document.getElementById('aiError').style.display   = 'flex';
+    document.getElementById('aiErrorMsg').textContent  = 'サンプルに見つかりませんでした。別の薬品名をお試しください。';
+  }
+  card.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+let currentController = null;
+
+async function doAISearch(term) {
+  if (currentController) currentController.abort();
+  currentController = new AbortController();
+
+  const card = document.getElementById('aiCard');
+  card.classList.add('visible');
+  document.getElementById('aiCardBrand').textContent    = term.trim();
+  document.getElementById('aiCardGeneric').textContent  = '';
+  document.getElementById('aiCardCompany').textContent  = '解析中…';
+  document.getElementById('aiCardCategory').textContent = '';
+  document.getElementById('aiCardIcon').textContent     = '💊';
+  document.getElementById('aiLoading').style.display    = 'flex';
+  document.getElementById('aiBody').style.display       = 'none';
+  document.getElementById('aiError').style.display      = 'none';
+  card.scrollIntoView({ behavior:'smooth', block:'nearest' });
+
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span><span>分析中…</span>';
+
+  let streamBuf = '';
+  const parsed  = {};
+
+  document.getElementById('aiLoading').style.display = 'none';
+  document.getElementById('aiBody').style.display    = 'block';
+  document.getElementById('aiOverview').innerHTML    = '<span class="cursor"></span>';
+  document.getElementById('aiStrategy').innerHTML   = '<span class="cursor"></span>';
+  document.getElementById('aiChallenges').innerHTML = '<span class="cursor"></span>';
+  document.getElementById('aiMrTalk').innerHTML     = '<span class="cursor"></span>';
+  document.getElementById('aiCompetitors').innerHTML = '';
+  document.getElementById('refsList').innerHTML      = '';
+  document.getElementById('refsLoading').style.display = 'flex';
+
+  try {
+    const resp = await fetch('/api/explain', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ term: term.trim() }), signal: currentController.signal
+    });
+    if (!resp.ok) {
+      const data = await resp.json().catch(()=>({}));
+      throw new Error(data.error === 'AI_UNAVAILABLE' ? 'AI機能は現在準備中です。' : `サーバーエラー (${resp.status})`);
+    }
+
+    const reader  = resp.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      for (const line of decoder.decode(value, { stream:true }).split('\n')) {
+        const t = line.trim();
+        if (!t || t === 'data: [DONE]') continue;
+        if (t.startsWith('data: ')) {
+          try {
+            const json = JSON.parse(t.slice(6));
+            if (json.error) {
+              if (json.error === 'RATE_LIMIT') throw new Error('リクエストが集中しています。少し時間をおいてから再試行してください。');
+              throw new Error(json.error);
+            }
+            if (json.content) streamBuf += json.content;
+          } catch(e) { if (e.message !== 'parse') throw e; }
+        }
+      }
+      if (streamBuf) streamRender(streamBuf, parsed);
+    }
+    finalRender(streamBuf, parsed);
+    fetchReferences(term.trim());
+
+  } catch(e) {
+    if (e.name === 'AbortError') return;
+    document.getElementById('aiBody').style.display  = 'none';
+    document.getElementById('aiError').style.display = 'flex';
+    document.getElementById('aiErrorMsg').textContent = e.message || 'エラーが発生しました';
+    document.getElementById('refsLoading').style.display = 'none';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>✨</span><span>AI分析</span>';
+  }
+}
+
+function streamRender(buf, parsed) {
+  const fields = [
+    { key:'brand',      id:'aiCardBrand',    type:'text' },
+    { key:'generic',    id:'aiCardGeneric',  type:'text' },
+    { key:'company',    id:'aiCardCompany',  type:'text' },
+    { key:'category',   id:'aiCardCategory', type:'text' },
+    { key:'icon',       id:'aiCardIcon',     type:'text' },
+    { key:'overview',   id:'aiOverview',     type:'cursor' },
+    { key:'strategy',   id:'aiStrategy',     type:'cursor' },
+    { key:'challenges', id:'aiChallenges',   type:'cursor' },
+    { key:'mrTalk',     id:'aiMrTalk',       type:'cursor' },
+  ];
+  fields.forEach(f => {
+    const m = buf.match(new RegExp(`"${f.key}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"`));
+    if (m) {
+      const val = unesc(m[1]);
+      if (val !== parsed[f.key]) {
+        parsed[f.key] = val;
+        const el = document.getElementById(f.id);
+        if (el) el.innerHTML = f.type === 'cursor' ? esc(val) + '<span class="cursor"></span>' : esc(val);
+      }
+    }
+  });
+}
+
+function finalRender(buf, parsed) {
+  // まず完全なJSONパースを試みる
+  try {
+    const clean = buf.trim().replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();
+    Object.assign(parsed, JSON.parse(clean));
+  } catch {
+    // JSONが途中で切れている場合：各フィールドを正規表現で個別抽出
+    const extractField = (key) => {
+      // 文字列フィールド
+      const m = buf.match(new RegExp(`"${key}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)`));
+      if (m) return m[1].replace(/\\n/g,'\n').replace(/\\"/g,'"').replace(/\\\\/g,'\\');
+      return null;
+    };
+    ['brand','generic','company','category','indication','icon','overview','strategy','challenges','mrTalk'].forEach(k => {
+      if (!parsed[k]) { const v = extractField(k); if (v) parsed[k] = v; }
+    });
+    // competitors（配列）が未取得なら正規表現で試みる
+    if (!parsed.competitors?.length) {
+      const allMatches = [...buf.matchAll(/"name"\s*:\s*"([^"\\]*)"/g)];
+      if (allMatches.length) {
+        parsed.competitors = allMatches.map(m => ({ name: m[1], company: '', point: '' }));
+      }
+    }
+  }
+
+  const set = (id, val, fallback='') => { const el=document.getElementById(id); if(el) el.textContent=val||fallback; };
+  set('aiCardBrand',    parsed.brand,    '—');
+  set('aiCardGeneric',  parsed.generic,  '');
+  set('aiCardCompany',  parsed.company,  '');
+  set('aiCardCategory', parsed.category, '');
+  const iconEl = document.getElementById('aiCardIcon');
+  if (iconEl) iconEl.textContent = parsed.icon || '💊';
+  set('aiOverview',   parsed.overview,   '（取得できませんでした）');
+  set('aiStrategy',   parsed.strategy,   '（取得できませんでした）');
+  set('aiChallenges', parsed.challenges, '（取得できませんでした）');
+  set('aiMrTalk',     parsed.mrTalk,     '（取得できませんでした）');
+
+  // 競合情報
+  const compEl = document.getElementById('aiCompetitors');
+  if (compEl) {
+    if (parsed.competitors?.length) {
+      compEl.innerHTML = parsed.competitors.map(c => `
+        <div class="competitor-item">
+          <div class="competitor-name">${esc(c.name||'')}</div>
+          <div class="competitor-company">${esc(c.company||'')}</div>
+          <div class="competitor-point">${esc(c.point||'')}</div>
+        </div>`).join('');
+    } else {
+      compEl.innerHTML = '<div class="competitor-item"><div class="competitor-point">競合情報を取得できませんでした</div></div>';
+    }
+  }
+
+  document.getElementById('refsList').innerHTML = '';
+  document.getElementById('refsLoading').style.display = 'flex';
+}
+
+// ============================================================
+//  参考文献取得・表示
+// ============================================================
+async function fetchReferences(term) {
+  const loadingEl = document.getElementById('refsLoading');
+  const listEl    = document.getElementById('refsList');
+  loadingEl.style.display = 'flex';
+  listEl.innerHTML = '';
+  try {
+    const resp = await fetch('/api/references', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ term })
+    });
+    const data = await resp.json();
+    loadingEl.style.display = 'none';
+    const items = [];
+
+    // PMDA リンク（常に表示）
+    if (data.pmda) {
+      items.push(`
+        <div class="ref-item">
+          <a href="${esc(data.pmda)}" target="_blank" rel="noopener noreferrer">
+            <span class="ref-badge pmda">📋 PMDA 添付文書検索</span>
+            <div class="ref-title">${esc(term)} — PMDA医薬品検索</div>
+            <div class="ref-url">🔗 ${esc(data.pmda)}</div>
+          </a>
+        </div>`);
+    }
+
+    // PubMed論文
+    if (data.papers?.length) {
+      data.papers.forEach(p => {
+        const titleJaHtml = p.titleJa ? `<div class="ref-title-ja">🇯🇵 ${esc(p.titleJa)}</div>` : '';
+        items.push(`
+          <div class="ref-item">
+            <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
+              <span class="ref-badge pubmed">📄 PubMed</span>
+              <div class="ref-title">${esc(p.title)}</div>
+              ${titleJaHtml}
+              <div class="ref-meta">${esc(p.authors)}${p.authors&&p.year?' · ':''}${esc(p.year)}${p.journal?' · '+esc(p.journal):''}</div>
+              <div class="ref-url">🔗 ${esc(p.url)}</div>
+            </a>
+          </div>`);
+      });
+    }
+
+    // Wikipedia
+    if (data.wiki) {
+      const langLabel = data.wiki.lang==='ja' ? '🌐 Wikipedia（日本語）' : '🌐 Wikipedia（English）';
+      const badgeCls  = data.wiki.lang==='ja' ? 'wiki-ja' : 'wiki-en';
+      items.push(`
+        <div class="ref-item">
+          <a href="${esc(data.wiki.url)}" target="_blank" rel="noopener noreferrer">
+            <span class="ref-badge ${badgeCls}">${langLabel}</span>
+            <div class="ref-title">${esc(data.wiki.title)}</div>
+            <div class="ref-url">🔗 ${esc(data.wiki.url)}</div>
+          </a>
+        </div>`);
+    }
+
+    listEl.innerHTML = items.length
+      ? items.join('')
+      : '<p style="font-size:.82rem;color:var(--gray-600);padding:6px 0;">関連する文献が見つかりませんでした。</p>';
+  } catch {
+    document.getElementById('refsLoading').style.display = 'none';
+    document.getElementById('refsList').innerHTML = '<p style="font-size:.82rem;color:var(--gray-600);padding:6px 0;">文献取得中にエラーが発生しました。</p>';
+  }
+}
+
+// ============================================================
+//  Sample Cards
+// ============================================================
+let currentCat = 'all', currentKeyword = '';
+
+function renderCards() {
+  const grid  = document.getElementById('cardsGrid');
+  const noRes = document.getElementById('noResult');
+  const count = document.getElementById('resultCount');
+  const kw    = currentKeyword.trim().toLowerCase();
+  let list    = SAMPLES.filter(i => currentCat==='all' || i.catKey===currentCat);
+  if (kw) list = list.filter(i =>
+    i.brand.toLowerCase().includes(kw) || i.generic.toLowerCase().includes(kw) ||
+    i.indication.toLowerCase().includes(kw) || i.strategy.toLowerCase().includes(kw)
+  );
+  if (!list.length) { grid.innerHTML=''; noRes.style.display='block'; count.textContent=''; return; }
+  noRes.style.display = 'none';
+  count.innerHTML = `<strong>${list.length}</strong> 件表示`;
+  grid.innerHTML = list.map(item => {
+    const cc = getCatCls(item.catKey);
+    return `<div class="card" data-term="${esc(item.brand)}">
+      <div class="card-header">
+        <div class="card-icon cat-${cc}-icon">${item.icon}</div>
+        <div>
+          <div class="card-brand">${highlight(item.brand,kw)}</div>
+          <div class="card-generic">${highlight(item.generic,kw)}</div>
+          <span class="card-cat cat-${cc}">${esc(item.catKey)}</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-sec strategy">📈 製品戦略</div>
+        <p class="card-text">${highlight(item.strategy,kw)}</p>
+        <div class="card-sec competitor">⚔️ 競合</div>
+        <div class="card-comp">${highlight(item.competitor,kw)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+//  Events
+// ============================================================
+document.getElementById('searchBtn').addEventListener('click', () => doSearch(document.getElementById('searchInput').value));
+document.getElementById('searchInput').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(e.target.value); });
+document.getElementById('hintRow').addEventListener('click', e => {
+  const c = e.target.closest('.hint-chip');
+  if(!c) return;
+  document.getElementById('searchInput').value = c.dataset.term;
+  doSearch(c.dataset.term);
+});
+document.addEventListener('click', e => {
+  const card = e.target.closest('.card[data-term]');
+  if(card){ document.getElementById('searchInput').value=card.dataset.term; doSearch(card.dataset.term); }
+});
+document.getElementById('filterBar').addEventListener('click', e => {
+  const b = e.target.closest('.filter-btn');
+  if(!b) return;
+  document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  currentCat = b.dataset.cat;
+  renderCards();
+});
+document.getElementById('sampleSearch').addEventListener('input', e => {
+  currentKeyword = e.target.value; renderCards();
+});
+
+// ============================================================
+//  Init
+// ============================================================
+checkAIStatus();
+renderCards();
+</script>
+</body>
+</html>

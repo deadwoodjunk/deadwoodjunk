@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PharmaAI 用語辞典</title>
+  <style>
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-dark:  #0a3d6b;
+      --blue-main:  #1565c0;
+      --blue-light: #1e88e5;
+      --blue-pale:  #e3f2fd;
+      --blue-bg:    #f0f7ff;
+      --white:      #ffffff;
+      --gray-100:   #f5f7fa;
+      --gray-300:   #cfd8dc;
+      --gray-600:   #546e7a;
+      --gray-800:   #263238;
+      --accent:     #00acc1;
+      --accent-light: #e0f7fa;
+      --shadow-sm:  0 2px 8px rgba(21,101,192,.12);
+      --shadow-md:  0 6px 24px rgba(21,101,192,.16);
+      --radius:     12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background: var(--blue-bg);
+      color: var(--gray-800);
+      min-height: 100vh;
+    }
+
+    /* ===== Header ===== */
+    header {
+      background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-main) 60%, var(--blue-light) 100%);
+      color: var(--white);
+      padding: 0 24px;
+      box-shadow: 0 2px 12px rgba(10,61,107,.3);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 60px;
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,.18);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .header-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+    .header-sub {
+      font-size: .7rem;
+      opacity: .8;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    /* ===== Hero / Search ===== */
+    .hero {
+      background: linear-gradient(160deg, var(--blue-dark) 0%, var(--blue-main) 55%, var(--accent) 100%);
+      padding: 56px 24px 64px;
+      text-align: center;
+      color: var(--white);
+    }
+    .hero-eyebrow {
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      opacity: .75;
+      margin-bottom: 10px;
+    }
+    .hero-heading {
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+    .hero-desc {
+      font-size: .9rem;
+      opacity: .8;
+      margin-bottom: 32px;
+    }
+
+    /* Search box */
+    .search-wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .search-input {
+      width: 100%;
+      padding: 18px 56px 18px 52px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 50px;
+      outline: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,.25);
+      color: var(--gray-800);
+      background: var(--white);
+      transition: box-shadow .2s;
+    }
+    .search-input:focus {
+      box-shadow: 0 4px 28px rgba(0,172,193,.5);
+    }
+    .search-input::placeholder { color: var(--gray-300); }
+    .search-icon {
+      position: absolute;
+      left: 18px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2rem;
+      color: var(--blue-main);
+      pointer-events: none;
+    }
+    .clear-btn {
+      position: absolute;
+      right: 16px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      font-size: 1.1rem; color: var(--gray-300);
+      display: none;
+      padding: 4px;
+      line-height: 1;
+    }
+    .clear-btn:hover { color: var(--gray-600); }
+
+    /* Stats bar */
+    .stats-bar {
+      max-width: 640px;
+      margin: 14px auto 0;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      font-size: .78rem;
+      opacity: .75;
+    }
+    .stats-bar span { display: flex; align-items: center; gap: 5px; }
+
+    /* ===== Main content ===== */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 16px 60px;
+    }
+
+    /* Category filter */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .filter-btn {
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 2px solid var(--gray-300);
+      background: var(--white);
+      color: var(--gray-600);
+      font-size: .82rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all .2s;
+    }
+    .filter-btn:hover { border-color: var(--blue-light); color: var(--blue-main); }
+    .filter-btn.active {
+      background: var(--blue-main);
+      border-color: var(--blue-main);
+      color: var(--white);
+    }
+
+    /* Section label */
+    .section-label {
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--blue-main);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--gray-300);
+    }
+
+    /* Result count */
+    .result-count {
+      font-size: .85rem;
+      color: var(--gray-600);
+      margin-bottom: 20px;
+    }
+    .result-count strong { color: var(--blue-main); }
+
+    /* ===== Cards grid ===== */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 20px;
+    }
+    @media (max-width: 600px) {
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      transition: box-shadow .25s, transform .25s;
+      border: 1px solid rgba(21,101,192,.08);
+    }
+    .card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-3px);
+    }
+
+    .card-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--blue-pale);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .card-icon {
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      background: var(--blue-pale);
+    }
+    .card-title-wrap { flex: 1; min-width: 0; }
+    .card-term {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--blue-dark);
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .card-category {
+      display: inline-block;
+      font-size: .7rem;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 20px;
+      letter-spacing: .05em;
+    }
+
+    .card-body { padding: 16px 20px; }
+
+    .card-section-title {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .card-section-title.meaning { color: var(--blue-main); }
+    .card-section-title.talk    { color: var(--accent); }
+
+    .card-meaning {
+      font-size: .88rem;
+      line-height: 1.75;
+      color: var(--gray-800);
+      margin-bottom: 14px;
+    }
+
+    .talk-box {
+      background: var(--accent-light);
+      border-left: 4px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 12px 14px;
+      font-size: .85rem;
+      line-height: 1.75;
+      color: var(--gray-800);
+      position: relative;
+    }
+    .talk-box::before {
+      content: '💬';
+      position: absolute;
+      top: 10px; right: 12px;
+      font-size: .9rem;
+      opacity: .5;
+    }
+
+    /* ===== No result ===== */
+    .no-result {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--gray-600);
+      display: none;
+    }
+    .no-result .icon { font-size: 3rem; margin-bottom: 14px; }
+    .no-result h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--gray-800); }
+    .no-result p  { font-size: .88rem; }
+
+    /* ===== Highlight ===== */
+    mark {
+      background: #fff176;
+      border-radius: 3px;
+      padding: 0 2px;
+      color: inherit;
+    }
+
+    /* ===== Category badge colors ===== */
+    .cat-ai        { background: #e8eaf6; color: #3949ab; }
+    .cat-drug      { background: #e8f5e9; color: #2e7d32; }
+    .cat-clinical  { background: #fff3e0; color: #e65100; }
+    .cat-molecule  { background: #fce4ec; color: #c62828; }
+    .cat-regulatory{ background: #f3e5f5; color: #6a1b9a; }
+
+    .cat-ai-icon        { background: #e8eaf6; }
+    .cat-drug-icon      { background: #e8f5e9; }
+    .cat-clinical-icon  { background: #fff3e0; }
+    .cat-molecule-icon  { background: #fce4ec; }
+    .cat-regulatory-icon{ background: #f3e5f5; }
+
+    /* ===== Footer ===== */
+    footer {
+      text-align: center;
+      padding: 28px 16px;
+      font-size: .78rem;
+      color: var(--gray-600);
+      border-top: 1px solid var(--gray-300);
+      background: var(--white);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="header-inner">
+    <div class="header-logo">
+      <div class="logo-icon">💊</div>
+      <div>
+        <div class="header-title">PharmaAI 用語辞典</div>
+        <div class="header-sub">Pharma &amp; AI Glossary</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Hero / Search -->
+<section class="hero">
+  <p class="hero-eyebrow">製薬 × AI 営業支援ツール</p>
+  <h1 class="hero-heading">知らない専門用語を<br>即座に理解・活用</h1>
+  <p class="hero-desc">用語を入力すると「意味」と「営業トーク例」が瞬時に表示されます</p>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input
+      id="searchInput"
+      class="search-input"
+      type="text"
+      placeholder="例：LLM、AlphaFold、治験効率化…"
+      autocomplete="off"
+    />
+    <button class="clear-btn" id="clearBtn" title="クリア">✕</button>
+  </div>
+  <div class="stats-bar">
+    <span>📚 <strong id="totalCount">0</strong> 用語収録</span>
+    <span>🔬 5 カテゴリ</span>
+    <span>💬 全トーク例付き</span>
+  </div>
+</section>
+
+<!-- Main -->
+<main>
+  <!-- Filter -->
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-btn active" data-cat="all">すべて</button>
+    <button class="filter-btn" data-cat="AI技術">🤖 AI技術</button>
+    <button class="filter-btn" data-cat="創薬">💊 創薬</button>
+    <button class="filter-btn" data-cat="臨床試験">🏥 臨床試験</button>
+    <button class="filter-btn" data-cat="分子・生物">🧬 分子・生物</button>
+    <button class="filter-btn" data-cat="規制・薬事">📋 規制・薬事</button>
+  </div>
+
+  <div id="resultCount" class="result-count"></div>
+  <div class="section-label" id="sectionLabel">用語一覧</div>
+
+  <div class="cards-grid" id="cardsGrid"></div>
+
+  <div class="no-result" id="noResult">
+    <div class="icon">🔍</div>
+    <h3>「<span id="noResultTerm"></span>」に一致する用語が見つかりません</h3>
+    <p>別のキーワードで検索してみてください</p>
+  </div>
+</main>
+
+<footer>
+  © 2025 PharmaAI 用語辞典 &nbsp;|&nbsp; 製薬 × AI 営業支援ツール
+</footer>
+
+<script>
+// ==============================
+//  Data
+// ==============================
+const terms = [
+  // ── AI 技術 ──────────────────────────────────
+  {
+    term: "LLM（大規模言語モデル）",
+    abbr: "LLM",
+    category: "AI技術",
+    icon: "🤖",
+    meaning: "Large Language Model の略。膨大なテキストデータを学習し、自然言語の生成・理解・翻訳・要約などを高精度で行うAIモデル。GPT-4 や Claude などが代表例。製薬領域では論文解析・規制文書作成・メディカルライティングへの応用が進んでいる。",
+    talk: "「弊社のLLMソリューションは、治験プロトコル作成や有害事象レポートのドラフト生成に活用でき、メディカルライターの工数を最大60%削減した事例があります。規制当局への申請書類作成の効率化にご関心はありませんか？」"
+  },
+  {
+    term: "AlphaFold",
+    abbr: "AlphaFold",
+    category: "AI技術",
+    icon: "🧠",
+    meaning: "DeepMind が開発したタンパク質立体構造予測AIモデル。アミノ酸配列から3D構造を原子レベルの精度で予測できる。2020年以降、創薬ターゲット探索や構造ベース設計の効率を劇的に向上させた。AlphaFold 3ではタンパク質以外の分子との相互作用も予測可能になった。",
+    talk: "「AlphaFoldによる構造予測データを活用することで、従来X線結晶解析に数ヶ月かかっていたターゲット構造解析を数日に短縮できます。貴社のフェーズ1候補化合物の設計精度向上にお役立てできますよ。」"
+  },
+  {
+    term: "生成AI（Generative AI）",
+    abbr: "GenAI",
+    category: "AI技術",
+    icon: "✨",
+    meaning: "テキスト・画像・分子構造などの新しいコンテンツを自律的に生成するAI技術の総称。製薬分野では新規分子設計、合成経路提案、臨床試験プロトコルのドラフト生成などに活用。規制上の検証プロセスが重要な課題となっている。",
+    talk: "「生成AIを活用した分子設計プラットフォームを導入することで、初期ヒット化合物の探索期間を従来比30〜40%短縮した製薬会社の事例をご紹介できます。探索フェーズの加速にご興味はありますか？」"
+  },
+  {
+    term: "機械学習（Machine Learning）",
+    abbr: "ML",
+    category: "AI技術",
+    icon: "⚙️",
+    meaning: "データからパターンを自動学習し予測・分類を行うAI手法の総称。製薬では化合物の活性・毒性予測、患者層別化、バイオマーカー発見などに幅広く使われる。教師あり学習・教師なし学習・強化学習などの手法がある。",
+    talk: "「機械学習を用いた毒性予測モデルを前臨床段階に組み込むことで、開発後期でのフェイルオーバーリスクを低減できます。in silicoスクリーニングの強化でコスト削減を実現した事例を共有させてください。」"
+  },
+  {
+    term: "自然言語処理（NLP）",
+    abbr: "NLP",
+    category: "AI技術",
+    icon: "📝",
+    meaning: "Natural Language Processing の略。コンピュータが人間の言語（テキスト・音声）を理解・分析・生成する技術。医学文献の自動解析、有害事象の自動コーディング、電子カルテからの情報抽出などに活用。",
+    talk: "「NLPを活用した有害事象の自動検出・コーディングシステムを導入いただければ、薬剤警戒業務（ファーマコビジランス）の処理時間を大幅に短縮し、品質向上にも貢献できます。」"
+  },
+
+  // ── 創薬 ────────────────────────────────────
+  {
+    term: "構造ベース創薬（SBDD）",
+    abbr: "SBDD",
+    category: "創薬",
+    icon: "🔬",
+    meaning: "Structure-Based Drug Design の略。ターゲットタンパク質の3D構造情報をもとに、結合ポケットに最適な低分子化合物を設計する創薬アプローチ。AlphaFoldなどのAI構造予測と組み合わせることで効率が飛躍的に向上している。",
+    talk: "「構造ベース創薬にAlpha FoldとAIドッキングシミュレーションを組み合わせることで、リード最適化サイクルを1回あたり数週間短縮できます。貴社の標的タンパクに対して試算をご提示することも可能です。」"
+  },
+  {
+    term: "低分子創薬",
+    abbr: "",
+    category: "創薬",
+    icon: "💊",
+    meaning: "分子量が比較的小さい化合物（低分子化合物）を医薬品として開発するアプローチ。経口投与が可能で製造コストも抑えやすいが、バイオ医薬品と比較してターゲットの選択性が課題になることもある。AI技術によるde novo設計やバーチャルスクリーニングと相性がよい。",
+    talk: "「低分子創薬の初期スクリーニングにAIバーチャルスクリーニングを活用することで、化合物ライブラリの中から活性化合物候補を従来の1/10以下のコストで絞り込んだ事例があります。」"
+  },
+  {
+    term: "バーチャルスクリーニング",
+    abbr: "VS",
+    category: "創薬",
+    icon: "🖥️",
+    meaning: "コンピュータ上でのシミュレーションにより、膨大な化合物ライブラリから活性を示す可能性の高い化合物を絞り込む手法。物理化学的計算やAI予測モデルを活用し、ウェットな実験数を大幅に削減できる。",
+    talk: "「弊社のAIバーチャルスクリーニングプラットフォームでは、数億化合物のライブラリを対象に数日でスクリーニングが完了します。ヒット率向上と前臨床コスト削減に直結しますので、ぜひデモをご覧ください。」"
+  },
+  {
+    term: "ターゲット探索・同定",
+    abbr: "",
+    category: "創薬",
+    icon: "🎯",
+    meaning: "疾患の原因や病態に関わるタンパク質・遺伝子などを薬剤標的として特定するプロセス。オミクスデータ（ゲノム・プロテオーム・トランスクリプトーム）とAI解析を組み合わせた手法が急速に普及している。",
+    talk: "「AIによるマルチオミクスデータ統合解析を活用すれば、疾患関連パスウェイの中から薬剤性が高いターゲットを優先度付きで提示できます。貴社のパイプラインの早期決断に貢献できますよ。」"
+  },
+  {
+    term: "de novo 分子設計",
+    abbr: "",
+    category: "創薬",
+    icon: "🧪",
+    meaning: "既存化合物に縛られず、コンピュータが新しい分子構造をゼロから生成する手法。生成AIや強化学習を活用し、所望の活性・ADMET特性を持つ化合物候補を自動設計する。特許回避にも有効。",
+    talk: "「de novo設計AIを活用することで、競合他社が特許取得済みの化合物骨格を回避しながら、類似した薬効を持つ新規化合物候補を提案できます。知財戦略の強化にもお役立ていただけます。」"
+  },
+
+  // ── 臨床試験 ──────────────────────────────────
+  {
+    term: "分散型臨床試験（DCT）",
+    abbr: "DCT",
+    category: "臨床試験",
+    icon: "🏥",
+    meaning: "Decentralized Clinical Trial の略。遠隔モニタリング・電子同意・ウェアラブルデバイス・訪問看護などを活用し、患者が来院しなくても参加できる臨床試験モデル。患者負担の軽減、リクルート加速、脱落率低下が主なメリット。",
+    talk: "「DCTを導入した試験では患者リクルート期間が平均35%短縮され、特に地方在住患者の参加率が大幅に向上した事例があります。プロトコル設計段階からDCT要素を取り入れることで開発期間全体を短縮できます。」"
+  },
+  {
+    term: "治験効率化",
+    abbr: "",
+    category: "臨床試験",
+    icon: "⚡",
+    meaning: "臨床試験のコスト・期間・リスクを削減するための取り組み全般。AIを用いた患者層別化・適応型デザイン（Adaptive Design）・リスクベースモニタリング（RBM）・電子データ収集（EDC）の高度化などが含まれる。",
+    talk: "「AIによるリスクベースモニタリングを活用すれば、従来の全数モニタリングから高リスクデータに集中した効率的な監査が実現し、SDVコストを40〜50%削減した事例もあります。CROとの連携強化にもつながります。」"
+  },
+  {
+    term: "適応型デザイン（Adaptive Design）",
+    abbr: "",
+    category: "臨床試験",
+    icon: "📊",
+    meaning: "中間解析データに基づき、事前に規定したルールに従って試験デザインを変更できる柔軟な臨床試験設計手法。用量変更・患者数再計算・試験の早期終了などを可能にし、成功確率を高めながらリソースを節約できる。",
+    talk: "「適応型デザインを採用することで、有望でない用量群を早期に切り捨てリソースを最有望群に集中できます。開発成功確率を上げながらコストを抑えるアプローチとして、規制当局も推奨しています。」"
+  },
+  {
+    term: "RWD / RWE",
+    abbr: "RWD/RWE",
+    category: "臨床試験",
+    icon: "📈",
+    meaning: "Real World Data（リアルワールドデータ）/ Real World Evidence（リアルワールドエビデンス）。電子カルテ・レセプト・患者レジストリなどの実臨床データから得られるエビデンス。承認後の有効性・安全性評価や対照群として活用が進んでいる。",
+    talk: "「RWDを活用した外部対照群（external control arm）を採用することで、プラセボ群を設けることが倫理的に難しい希少疾患の試験でも規制当局の承認を取得した事例があります。希少疾患開発のご支援ができます。」"
+  },
+  {
+    term: "患者層別化（Patient Stratification）",
+    abbr: "",
+    category: "臨床試験",
+    icon: "👥",
+    meaning: "バイオマーカーや遺伝子情報などに基づき、治療への反応が期待できる患者サブグループを特定するプロセス。プレシジョンメディシン（精密医療）の中核をなし、試験の成功率向上と薬剤の価値最大化につながる。",
+    talk: "「AIによるバイオマーカー探索と患者層別化を早期フェーズから組み込むことで、後期フェーズでのサブグループ解析リスクを下げ、承認申請の成功確率を高めることができます。」"
+  },
+
+  // ── 分子・生物 ──────────────────────────────────
+  {
+    term: "バイオインフォマティクス",
+    abbr: "",
+    category: "分子・生物",
+    icon: "🧬",
+    meaning: "生物学的なデータ（DNA・RNA・タンパク質配列、構造、発現量など）をコンピュータで解析する学問領域。ゲノム解析・タンパク質機能予測・創薬ターゲット同定・疾患メカニズム解明などに不可欠。現在はAI・機械学習との融合が急進している。",
+    talk: "「バイオインフォマティクス解析基盤を整備することで、社内の多様なオミクスデータを統合的に活用した標的探索が可能になります。データ資産の最大活用というビジネス提案として強力です。」"
+  },
+  {
+    term: "マルチオミクス（Multi-omics）",
+    abbr: "",
+    category: "分子・生物",
+    icon: "🔗",
+    meaning: "ゲノミクス・トランスクリプトミクス・プロテオミクス・メタボロミクスなど複数のオミクスデータを統合的に解析するアプローチ。単一オミクスでは見えない疾患メカニズムや薬剤標的を明らかにできる。",
+    talk: "「マルチオミクス統合解析プラットフォームを活用することで、疾患の全体像を多角的に把握し、新たなターゲットやバイオマーカー候補を効率的に絞り込むことができます。競合に差をつける探索戦略になります。」"
+  },
+  {
+    term: "ADMET予測",
+    abbr: "ADMET",
+    category: "分子・生物",
+    icon: "⚗️",
+    meaning: "Absorption（吸収）・Distribution（分布）・Metabolism（代謝）・Excretion（排泄）・Toxicity（毒性）の予測。AIモデルを用いることで化合物の薬物動態・安全性プロファイルを合成前に評価でき、前臨床段階の失敗を大幅に減らせる。",
+    talk: "「in silico ADMET予測をリード最適化に組み込むことで、代謝安定性・hERG毒性などに問題のある化合物を早期に除外し、前臨床試験への持ち込み化合物の品質を上げることができます。」"
+  },
+  {
+    term: "タンパク質-リガンド相互作用",
+    abbr: "",
+    category: "分子・生物",
+    icon: "🔩",
+    meaning: "標的タンパク質と薬剤候補分子（リガンド）の結合様式・結合力を解析する技術領域。分子ドッキング・分子動力学（MD）シミュレーション・自由エネルギー計算などの計算手法と、SPRやITCなどの実験手法がある。",
+    talk: "「AIを活用したタンパク質-リガンド相互作用解析により、従来の実験的アプローチよりも高速・低コストで結合モードを予測し、選択的な化合物設計が可能になります。」"
+  },
+
+  // ── 規制・薬事 ────────────────────────────────
+  {
+    term: "規制科学（Regulatory Science）",
+    abbr: "",
+    category: "規制・薬事",
+    icon: "📋",
+    meaning: "医薬品・医療機器の有効性・安全性を科学的に評価・予測するための手法・基準・技術を研究・開発する学問領域。AIやデジタルバイオマーカーを規制申請にどう組み込むかが現在の主要テーマ。",
+    talk: "「規制科学の動向に沿ったAI活用戦略を立案することで、PMDAやFDA・EMAへの申請プロセスを円滑化できます。規制当局との事前相談（RS戦略相談）の準備支援も可能です。」"
+  },
+  {
+    term: "電子臨床試験記録（eCTD）",
+    abbr: "eCTD",
+    category: "規制・薬事",
+    icon: "📁",
+    meaning: "Electronic Common Technical Document の略。医薬品承認申請に使用する電子化された共通技術文書フォーマット。日米欧の規制当局への申請に標準的に使用され、AI技術による自動構成・品質チェックの活用が進んでいる。",
+    talk: "「eCTD作成プロセスにAIドキュメント自動生成・品質チェックを組み込むことで、申請文書の作成工数を削減しながら品質を向上できます。申請準備期間の短縮に直結する投資対効果の高い施策です。」"
+  },
+  {
+    term: "ファーマコビジランス（PV）",
+    abbr: "PV",
+    category: "規制・薬事",
+    icon: "🛡️",
+    meaning: "医薬品の安全性情報を収集・評価・報告する薬剤警戒活動。上市後の有害事象（AE）の自発報告・定期的安全性最新報告（PSUR）作成などが含まれる。AIによるシグナル検出・MedDRAコーディング自動化が急速に普及している。",
+    talk: "「AIを活用したファーマコビジランス自動化システムにより、有害事象レポートの処理速度を従来比3〜5倍に向上させつつ、規制当局への報告期限遵守率を大幅に改善した事例をご紹介できます。」"
+  },
+  {
+    term: "希少疾患開発（Orphan Drug）",
+    abbr: "",
+    category: "規制・薬事",
+    icon: "🌿",
+    meaning: "患者数が少ない希少疾患を対象とした医薬品開発。規制上の優遇措置（希少疾病用医薬品指定・優先審査など）が各国で整備されている。小規模試験でのエビデンス創出にAIやRWDの活用が特に有効。",
+    talk: "「希少疾患では少ない患者数で有効性を示す必要があるため、AIによる患者特定・バイオマーカー戦略・RWD活用が競争優位につながります。希少疾患パイプラインの加速を一緒に考えましょう。」"
+  }
+];
+
+// ==============================
+//  Render helpers
+// ==============================
+const catClass = {
+  "AI技術":   "ai",
+  "創薬":     "drug",
+  "臨床試験": "clinical",
+  "分子・生物":"molecule",
+  "規制・薬事":"regulatory"
+};
+
+function highlight(text, query) {
+  if (!query) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return text.replace(new RegExp(escaped, 'gi'), m => `<mark>${m}</mark>`);
+}
+
+function renderCard(item, query) {
+  const cc = catClass[item.category] || "ai";
+  return `
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon cat-${cc}-icon">${item.icon}</div>
+      <div class="card-title-wrap">
+        <div class="card-term">${highlight(item.term, query)}</div>
+        <span class="card-category cat-${cc}">${item.category}</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-section-title meaning">📖 意味・解説</div>
+      <p class="card-meaning">${highlight(item.meaning, query)}</p>
+      <div class="card-section-title talk">🗣 営業トーク例</div>
+      <div class="talk-box">${highlight(item.talk, query)}</div>
+    </div>
+  </div>`;
+}
+
+// ==============================
+//  State & DOM refs
+// ==============================
+let currentQuery = "";
+let currentCat   = "all";
+
+const input       = document.getElementById('searchInput');
+const clearBtn    = document.getElementById('clearBtn');
+const grid        = document.getElementById('cardsGrid');
+const noResult    = document.getElementById('noResult');
+const noResultTerm= document.getElementById('noResultTerm');
+const resultCount = document.getElementById('resultCount');
+const sectionLabel= document.getElementById('sectionLabel');
+const totalCount  = document.getElementById('totalCount');
+const filterBar   = document.getElementById('filterBar');
+
+// ==============================
+//  Render
+// ==============================
+function render() {
+  const q   = currentQuery.trim().toLowerCase();
+  const cat = currentCat;
+
+  const filtered = terms.filter(item => {
+    const matchCat = cat === 'all' || item.category === cat;
+    const matchQ   = !q ||
+      item.term.toLowerCase().includes(q) ||
+      (item.abbr && item.abbr.toLowerCase().includes(q)) ||
+      item.meaning.toLowerCase().includes(q) ||
+      item.talk.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    noResult.style.display = 'block';
+    noResultTerm.textContent = currentQuery || '（条件）';
+    resultCount.textContent = '';
+    sectionLabel.textContent = '検索結果';
+  } else {
+    noResult.style.display = 'none';
+    grid.innerHTML = filtered.map(item => renderCard(item, currentQuery.trim())).join('');
+    sectionLabel.textContent = q ? '検索結果' : (cat === 'all' ? '用語一覧' : cat + ' の用語');
+    resultCount.innerHTML = q
+      ? `<strong>${filtered.length}</strong> 件ヒット（全 ${terms.length} 件中）`
+      : `全 <strong>${filtered.length}</strong> 件`;
+  }
+}
+
+// ==============================
+//  Events
+// ==============================
+input.addEventListener('input', () => {
+  currentQuery = input.value;
+  clearBtn.style.display = currentQuery ? 'block' : 'none';
+  render();
+});
+
+clearBtn.addEventListener('click', () => {
+  input.value = '';
+  currentQuery = '';
+  clearBtn.style.display = 'none';
+  input.focus();
+  render();
+});
+
+filterBar.addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  filterBar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat;
+  render();
+});
+
+// ==============================
+//  Init
+// ==============================
+totalCount.textContent = terms.length;
+render();
+</script>
+</body>
+</html>
