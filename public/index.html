@@ -692,10 +692,29 @@ function streamRender(buf, parsed) {
 }
 
 function finalRender(buf, parsed) {
+  // まず完全なJSONパースを試みる
   try {
     const clean = buf.trim().replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();
     Object.assign(parsed, JSON.parse(clean));
-  } catch {}
+  } catch {
+    // JSONが途中で切れている場合：各フィールドを正規表現で個別抽出
+    const extractField = (key) => {
+      // 文字列フィールド
+      const m = buf.match(new RegExp(`"${key}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)`));
+      if (m) return m[1].replace(/\\n/g,'\n').replace(/\\"/g,'"').replace(/\\\\/g,'\\');
+      return null;
+    };
+    ['brand','generic','company','category','indication','icon','overview','strategy','challenges','mrTalk'].forEach(k => {
+      if (!parsed[k]) { const v = extractField(k); if (v) parsed[k] = v; }
+    });
+    // competitors（配列）が未取得なら正規表現で試みる
+    if (!parsed.competitors?.length) {
+      const allMatches = [...buf.matchAll(/"name"\s*:\s*"([^"\\]*)"/g)];
+      if (allMatches.length) {
+        parsed.competitors = allMatches.map(m => ({ name: m[1], company: '', point: '' }));
+      }
+    }
+  }
 
   const set = (id, val, fallback='') => { const el=document.getElementById(id); if(el) el.textContent=val||fallback; };
   set('aiCardBrand',    parsed.brand,    '—');

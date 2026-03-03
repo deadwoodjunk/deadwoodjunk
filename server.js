@@ -171,29 +171,31 @@ app.post('/api/explain', async (req, res) => {
   res.flushHeaders();
 
   const systemPrompt = `あなたは日本の製薬業界に精通したMR（医薬情報担当者）向けの専門アドバイザーです。
-日本で承認・販売されている医療用医薬品について、MRが担当医師・薬剤師への訪問活動に活用できる
-実践的な情報を提供してください。
+日本で承認・販売されている医療用医薬品について、MRが担当医師・薬剤師への訪問活動に活用できる実践的な情報を提供してください。
 
-必ず以下のJSON形式のみで返答してください（余分なテキスト・コードブロック不要）：
+【重要】必ず最後の"}"まで含む完全なJSONを出力してください。途中で切らないでください。
+余分なテキストやコードブロック記号は不要です。JSONオブジェクトのみ返してください。
+
 {
-  "brand": "ブランド名（製品名）",
-  "generic": "一般名（国際一般名）",
+  "brand": "ブランド名",
+  "generic": "一般名",
   "company": "製造販売元（日本法人名）",
-  "category": "薬効分類（例：SGLT2阻害薬、PD-1阻害薬 など）",
-  "indication": "日本での主な適応症（承認適応を簡潔に）",
-  "icon": "内容に合う絵文字1文字",
-  "overview": "製品概要（200字程度）：作用機序・特徴・承認年など",
-  "strategy": "製品戦略（200字程度）：日本での位置づけ・ターゲット患者層・MR訴求ポイント・ガイドライン記載状況",
+  "category": "薬効分類",
+  "indication": "日本での主な適応症",
+  "icon": "絵文字1文字",
+  "overview": "製品概要：作用機序・特徴・承認情報（150字以内）",
+  "strategy": "製品戦略：日本での位置づけ・ターゲット患者層・ガイドライン記載（150字以内）",
   "competitors": [
-    {"name": "競合薬名", "company": "会社名", "point": "差別化ポイント"}
+    {"name": "競合薬名", "company": "会社名", "point": "差別化ポイント（50字以内）"}
   ],
-  "challenges": "課題・リスク（150字程度）：副作用・禁忌・処方障壁・後発品リスク・市場課題",
-  "mrTalk": "MR訴求トーク例（実際の面談で使えるセリフ形式、150字程度）"
+  "challenges": "課題・リスク：副作用・禁忌・処方障壁・後発品リスク（120字以内）",
+  "mrTalk": "MR訴求トーク例：担当医への面談で使えるセリフ（120字以内）"
 }`;
 
   const isGroq   = cred.provider === 'groq';
   const endpoint = isGroq ? 'https://api.groq.com/openai/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
-  const model    = isGroq ? 'llama-3.1-8b-instant' : 'gpt-3.5-turbo';
+  // llama-3.3-70b-versatile: 高性能・JSON出力安定・Groq無料枠対応
+  const model    = isGroq ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini';
 
   console.log(`▶ /api/explain  provider=${cred.provider}  drug=${term}`);
 
@@ -207,7 +209,7 @@ app.post('/api/explain', async (req, res) => {
           { role: 'system', content: systemPrompt },
           { role: 'user',   content: `次の日本の医療用医薬品について情報をまとめてください：「${term.trim()}」` }
         ],
-        stream: true, temperature: 0.3, max_tokens: 1200
+        stream: true, temperature: 0.3, max_tokens: 2000
       })
     });
 
