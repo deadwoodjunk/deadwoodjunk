@@ -1,13 +1,13 @@
 {
   "name": "pharmaai-glossary",
   "version": "1.0.0",
-  "description": "PharmaAI 用語辞典 - 製薬×AI 営業支援ツール",
+  "description": "PharmaInfo Japan - 日本医療用医薬品 MR営業支援ツール",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["pharma", "AI", "glossary"],
+  "keywords": ["pharma", "Japan", "MR", "medical", "drug-information"],
   "author": "",
   "license": "ISC",
   "dependencies": {

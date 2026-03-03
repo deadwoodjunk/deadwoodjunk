@@ -11,7 +11,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ============================================================
 //  サーバー側 API キー管理（環境変数から取得）
-//  クライアントには一切キーを公開しない
 // ============================================================
 const GROQ_API_KEY   = process.env.GROQ_API_KEY   || '';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY  || '';
@@ -34,7 +33,7 @@ app.get('/api/health', (_req, res) => {
 async function translateToJa(text) {
   if (!text || text.trim().length === 0) return '';
   try {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0, 500))}&langpair=en|ja`;
+    const url  = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0, 500))}&langpair=en|ja`;
     const res  = await fetch(url, { signal: AbortSignal.timeout(5000) });
     const data = await res.json();
     const trans = data?.responseData?.translatedText || '';
@@ -47,44 +46,36 @@ async function translateToJa(text) {
 }
 
 // ============================================================
-//  EuropePMC 論文検索（最大3件）
+//  EuropePMC 論文検索（医薬品名で検索・最大3件）
 // ============================================================
-async function searchEuropePMC(term) {
+async function searchEuropePMC(drugName) {
   try {
-    const termMap = {
-      'llm': 'large language model pharmaceutical',
-      'alphafold': 'AlphaFold protein structure drug discovery',
-      '構造ベース創薬': 'structure-based drug design AI',
-      'sbdd': 'structure-based drug design',
-      '低分子創薬': 'small molecule drug discovery AI',
-      '分散型臨床試験': 'decentralized clinical trial DCT',
-      'dct': 'decentralized clinical trial',
-      '治験効率化': 'clinical trial efficiency AI',
-      'アダプティブデザイン': 'adaptive design clinical trial',
-      'rwd': 'real world data evidence pharmaceutical',
-      'rwe': 'real world evidence drug approval',
-      'バイオマーカー': 'biomarker drug development clinical trial',
-      'マルチオミクス': 'multi-omics drug discovery',
-      'バイオインフォマティクス': 'bioinformatics drug discovery',
-      'admet': 'ADMET prediction machine learning',
-      'admet予測': 'ADMET prediction AI drug discovery',
-      'ファーマコビジランス': 'pharmacovigilance AI automation',
-      'pv': 'pharmacovigilance signal detection AI',
-      '希少疾患': 'rare disease drug development AI',
-      'オーファン': 'orphan drug rare disease',
-      'ectd': 'eCTD regulatory submission AI',
-      'レギュラトリーサイエンス': 'regulatory science AI pharmaceutical',
-      '生成ai': 'generative AI drug discovery',
-      '機械学習': 'machine learning drug discovery',
-      'ml': 'machine learning pharmaceutical drug discovery',
-      'nlp': 'natural language processing pharmaceutical',
-      '自然言語処理': 'natural language processing clinical trial',
-      'バーチャルスクリーニング': 'virtual screening machine learning',
-      'de novo': 'de novo drug design generative AI',
+    // 薬品名から英語検索クエリを生成
+    const drugMap = {
+      'ジャディアンス': 'empagliflozin clinical trial Japan',
+      'フォシーガ': 'dapagliflozin Japan clinical',
+      'カナグル': 'canagliflozin Japan',
+      'オゼンピック': 'semaglutide GLP-1 Japan',
+      'マンジャロ': 'tirzepatide Japan clinical',
+      'キイトルーダ': 'pembrolizumab Japan cancer',
+      'オプジーボ': 'nivolumab Japan cancer immunotherapy',
+      'タグリッソ': 'osimertinib EGFR Japan lung cancer',
+      'エンレスト': 'sacubitril valsartan heart failure Japan',
+      'ザーコリ': 'crizotinib ALK Japan',
+      'イブランス': 'palbociclib breast cancer Japan',
+      'リンパーザ': 'olaparib BRCA Japan',
+      'ベージニオ': 'abemaciclib breast cancer Japan',
+      'スキリージ': 'risankizumab Japan psoriasis',
+      'ヒュミラ': 'adalimumab Japan',
+      'ステラーラ': 'ustekinumab Japan',
+      'コセンティクス': 'secukinumab Japan psoriasis',
+      'エリキュース': 'apixaban anticoagulant Japan',
+      'イグザレルト': 'rivaroxaban Japan',
+      'プラザキサ': 'dabigatran Japan',
     };
-    const termLower   = term.toLowerCase().replace(/[（(）)\s]/g, '').trim();
-    const searchQuery = termMap[termLower] || `${term} pharmaceutical drug discovery`;
-    const url = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(searchQuery)}&resultType=lite&pageSize=5&format=json`;
+    const key = drugName.replace(/\s/g, '');
+    const query = drugMap[key] || `${drugName} Japan pharmaceutical clinical`;
+    const url = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(query)}&resultType=lite&pageSize=5&format=json`;
     const res  = await fetch(url, { signal: AbortSignal.timeout(8000) });
     const data = await res.json();
     const hits = (data?.resultList?.result || []).filter(h => h.title && h.pmid).slice(0, 3);
@@ -112,9 +103,17 @@ async function searchEuropePMC(term) {
 }
 
 // ============================================================
+//  PMDA 添付文書検索（薬品名でPMDA検索URLを生成）
+// ============================================================
+function getPmdaUrl(drugName) {
+  // PMDA医薬品検索URL
+  return `https://www.pmda.go.jp/PmdaSearch/iyakuSearch/#contents=iyakuSearch&kw=${encodeURIComponent(drugName)}&kw_name=${encodeURIComponent(drugName)}`;
+}
+
+// ============================================================
 //  Wikipedia 検索（日本語→英語フォールバック）
 // ============================================================
-const WIKI_UA = 'PharmaAIApp/1.0 (pharmaai@example.com)';
+const WIKI_UA = 'PharmaInfoJapan/1.0 (pharmainfo@example.com)';
 
 async function searchWikipedia(term) {
   try {
@@ -141,57 +140,62 @@ async function searchWikipediaEn(term) {
 }
 
 // ============================================================
-//  参考文献 API
+//  参考文献 API（PMDA + PubMed + Wikipedia）
 // ============================================================
 app.post('/api/references', async (req, res) => {
   const { term } = req.body;
-  if (!term?.trim()) return res.status(400).json({ error: '用語が必要です' });
-  console.log(`▶ /api/references  term=${term}`);
-  const [papers, wiki] = await Promise.all([searchEuropePMC(term.trim()), searchWikipedia(term.trim())]);
-  res.json({ papers, wiki });
+  if (!term?.trim()) return res.status(400).json({ error: '薬品名が必要です' });
+  console.log(`▶ /api/references  drug=${term}`);
+  const [papers, wiki] = await Promise.all([
+    searchEuropePMC(term.trim()),
+    searchWikipedia(term.trim())
+  ]);
+  const pmda = getPmdaUrl(term.trim());
+  res.json({ papers, wiki, pmda });
 });
 
 // ============================================================
-//  AI 用語解説 API（ストリーミング SSE）
-//  ※ クライアントからAPIキーを受け取らない。サーバー環境変数のみ使用。
+//  AI 医薬品情報 API（ストリーミング SSE）
 // ============================================================
 app.post('/api/explain', async (req, res) => {
   const { term } = req.body;
-
-  if (!term?.trim()) return res.status(400).json({ error: '用語を入力してください' });
+  if (!term?.trim()) return res.status(400).json({ error: '薬品名を入力してください' });
 
   const cred = resolveKey();
-  if (!cred) {
-    return res.status(503).json({ error: 'AI_UNAVAILABLE' });
-  }
+  if (!cred) return res.status(503).json({ error: 'AI_UNAVAILABLE' });
 
-  // SSE ヘッダー
   res.setHeader('Content-Type',      'text/event-stream');
   res.setHeader('Cache-Control',     'no-cache');
   res.setHeader('Connection',        'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
 
-  const systemPrompt = `あなたは製薬業界・創薬・臨床試験・AIテクノロジーに精通した日本人の専門家アドバイザーです。
-製薬会社の営業担当者が、社内外で使われる専門用語を素早く理解し、商談や提案で活用できるよう、
-わかりやすく・実践的に説明してください。
+  const systemPrompt = `あなたは日本の製薬業界に精通したMR（医薬情報担当者）向けの専門アドバイザーです。
+日本で承認・販売されている医療用医薬品について、MRが担当医師・薬剤師への訪問活動に活用できる
+実践的な情報を提供してください。
 
 必ず以下のJSON形式のみで返答してください（余分なテキスト・コードブロック不要）：
 {
-  "meaning": "意味・解説（200字程度、専門知識がない人にも伝わる平易な表現）",
-  "talk": "営業トーク例（実際の商談で使えるセリフ形式、150字程度、具体的な数字や事例を含む）",
-  "category": "AI技術 / 創薬 / 臨床試験 / 分子・生物 / 規制・薬事 / その他 のいずれか",
+  "brand": "ブランド名（製品名）",
+  "generic": "一般名（国際一般名）",
+  "company": "製造販売元（日本法人名）",
+  "category": "薬効分類（例：SGLT2阻害薬、PD-1阻害薬 など）",
+  "indication": "日本での主な適応症（承認適応を簡潔に）",
   "icon": "内容に合う絵文字1文字",
-  "related": ["関連用語1", "関連用語2", "関連用語3"]
+  "overview": "製品概要（200字程度）：作用機序・特徴・承認年など",
+  "strategy": "製品戦略（200字程度）：日本での位置づけ・ターゲット患者層・MR訴求ポイント・ガイドライン記載状況",
+  "competitors": [
+    {"name": "競合薬名", "company": "会社名", "point": "差別化ポイント"}
+  ],
+  "challenges": "課題・リスク（150字程度）：副作用・禁忌・処方障壁・後発品リスク・市場課題",
+  "mrTalk": "MR訴求トーク例（実際の面談で使えるセリフ形式、150字程度）"
 }`;
 
   const isGroq   = cred.provider === 'groq';
-  const endpoint = isGroq
-    ? 'https://api.groq.com/openai/v1/chat/completions'
-    : 'https://api.openai.com/v1/chat/completions';
+  const endpoint = isGroq ? 'https://api.groq.com/openai/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
   const model    = isGroq ? 'llama-3.1-8b-instant' : 'gpt-3.5-turbo';
 
-  console.log(`▶ /api/explain  provider=${cred.provider}  model=${model}  term=${term}`);
+  console.log(`▶ /api/explain  provider=${cred.provider}  drug=${term}`);
 
   try {
     const response = await fetch(endpoint, {
@@ -201,9 +205,9 @@ app.post('/api/explain', async (req, res) => {
         model,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user',   content: `次の製薬・AI専門用語を解説してください：「${term.trim()}」` }
+          { role: 'user',   content: `次の日本の医療用医薬品について情報をまとめてください：「${term.trim()}」` }
         ],
-        stream: true, temperature: 0.7, max_tokens: 700
+        stream: true, temperature: 0.3, max_tokens: 1200
       })
     });
 
@@ -244,6 +248,6 @@ app.post('/api/explain', async (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   const cred = resolveKey();
-  console.log(`✅ PharmaAI サーバー起動 → http://0.0.0.0:${PORT}`);
-  console.log(`   AI: ${cred ? `有効 (${cred.provider})` : '無効 — GROQ_API_KEY または OPENAI_API_KEY を設定してください'}`);
+  console.log(`✅ PharmaInfo Japan サーバー起動 → http://0.0.0.0:${PORT}`);
+  console.log(`   AI: ${cred ? `有効 (${cred.provider})` : '無効 — GROQ_API_KEY を設定してください'}`);
 });

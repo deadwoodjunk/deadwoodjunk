@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PharmaAI 用語辞典</title>
+  <title>PharmaInfo Japan — 医療用医薬品 営業支援ツール</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -13,6 +13,7 @@
       --blue-pale:   #e3f2fd;
       --blue-bg:     #f0f7ff;
       --white:       #ffffff;
+      --gray-100:    #f5f5f5;
       --gray-300:    #cfd8dc;
       --gray-600:    #546e7a;
       --gray-800:    #263238;
@@ -20,6 +21,12 @@
       --accent-light:#e0f7fa;
       --green:       #2e7d32;
       --green-light: #e8f5e9;
+      --red:         #c62828;
+      --red-light:   #ffebee;
+      --orange:      #e65100;
+      --orange-light:#fff3e0;
+      --purple:      #6a1b9a;
+      --purple-light:#f3e5f5;
       --shadow-sm:   0 2px 8px rgba(21,101,192,.12);
       --shadow-md:   0 8px 32px rgba(21,101,192,.18);
       --radius:      14px;
@@ -27,9 +34,7 @@
     html { scroll-behavior: smooth; }
     body {
       font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-      background: var(--blue-bg);
-      color: var(--gray-800);
-      min-height: 100vh;
+      background: var(--blue-bg); color: var(--gray-800); min-height: 100vh;
     }
 
     /* ===== Header ===== */
@@ -41,17 +46,15 @@
     }
     .header-inner {
       max-width: 960px; margin: 0 auto;
-      display: flex; align-items: center; justify-content: space-between;
-      height: 56px;
+      display: flex; align-items: center; justify-content: space-between; height: 56px;
     }
     .header-logo { display: flex; align-items: center; gap: 10px; }
     .logo-icon {
-      width: 34px; height: 34px;
-      background: rgba(255,255,255,.18); border-radius: 8px;
+      width: 34px; height: 34px; background: rgba(255,255,255,.18); border-radius: 8px;
       display: flex; align-items: center; justify-content: center; font-size: 18px;
     }
     .header-title { font-size: 1.05rem; font-weight: 700; }
-    .header-sub   { font-size: .65rem; opacity: .75; letter-spacing: .05em; text-transform: uppercase; }
+    .header-sub   { font-size: .65rem; opacity: .75; letter-spacing: .05em; }
     .header-badge {
       background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28);
       border-radius: 20px; padding: 4px 11px; font-size: .7rem; font-weight: 700;
@@ -72,32 +75,25 @@
     .search-wrap { max-width: 640px; margin: 0 auto; }
     .search-row { display: flex; gap: 8px; position: relative; }
     .search-input {
-      flex: 1; padding: 16px 16px 16px 48px;
-      font-size: .98rem; border: none; border-radius: 50px;
+      flex: 1; padding: 16px 16px 16px 48px; font-size: .98rem; border: none; border-radius: 50px;
       outline: none; box-shadow: 0 4px 20px rgba(0,0,0,.22);
       color: var(--gray-800); background: var(--white); transition: box-shadow .2s;
     }
     .search-input:focus { box-shadow: 0 4px 28px rgba(0,172,193,.5); }
     .search-input::placeholder { color: var(--gray-300); }
-    .search-icon {
-      position: absolute; left: 16px; top: 50%;
-      transform: translateY(-50%); font-size: 1.1rem;
-      color: var(--blue-main); pointer-events: none;
-    }
+    .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 1.1rem; color: var(--blue-main); pointer-events: none; }
     .search-btn {
       padding: 0 22px; background: var(--accent); color: var(--white);
       border: none; border-radius: 50px; font-size: .93rem; font-weight: 700;
-      cursor: pointer; white-space: nowrap;
-      box-shadow: 0 4px 14px rgba(0,172,193,.4); transition: all .2s;
-      display: flex; align-items: center; gap: 6px;
+      cursor: pointer; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,172,193,.4);
+      transition: all .2s; display: flex; align-items: center; gap: 6px;
     }
     .search-btn:hover:not(:disabled) { background: #0097a7; transform: translateY(-1px); }
     .search-btn:disabled { opacity: .55; cursor: not-allowed; }
     .hint-row { margin-top: 12px; display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; }
     .hint-chip {
       background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22);
-      border-radius: 20px; padding: 4px 12px; cursor: pointer;
-      font-size: .73rem; transition: background .15s;
+      border-radius: 20px; padding: 4px 12px; cursor: pointer; font-size: .73rem; transition: background .15s;
     }
     .hint-chip:hover { background: rgba(255,255,255,.26); }
 
@@ -115,19 +111,19 @@
     @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
     .ai-card-header {
       background: linear-gradient(135deg, var(--blue-dark), var(--blue-main));
-      color: var(--white); padding: 16px 20px;
-      display: flex; align-items: center; gap: 12px;
+      color: var(--white); padding: 18px 20px;
+      display: flex; align-items: flex-start; gap: 14px;
     }
     .ai-card-icon {
-      width: 46px; height: 46px; border-radius: 12px;
-      background: rgba(255,255,255,.17);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.4rem; flex-shrink: 0;
+      width: 52px; height: 52px; border-radius: 14px; background: rgba(255,255,255,.17);
+      display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0;
     }
-    .ai-card-term { font-size: 1.2rem; font-weight: 800; }
-    .ai-card-cat {
-      display: inline-block; margin-top: 4px;
-      font-size: .7rem; font-weight: 700; padding: 2px 10px;
+    .ai-card-header-info { flex: 1; }
+    .ai-card-brand { font-size: 1.4rem; font-weight: 800; line-height: 1.2; }
+    .ai-card-generic { font-size: .82rem; opacity: .8; margin-top: 3px; }
+    .ai-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .ai-tag {
+      font-size: .7rem; font-weight: 700; padding: 3px 10px;
       background: rgba(255,255,255,.2); border-radius: 20px;
     }
     .ai-loading {
@@ -142,36 +138,88 @@
     @keyframes spin { to{transform:rotate(360deg)} }
     .ai-error {
       display: none; align-items: center; gap: 8px;
-      padding: 18px 20px; color: #c62828;
-      background: #ffebee; font-size: .88rem;
+      padding: 18px 20px; color: var(--red); background: var(--red-light); font-size: .88rem;
     }
-    .ai-body { padding: 18px 20px; display: none; }
-    .ai-sec { margin-bottom: 16px; }
-    .ai-sec:last-child { margin-bottom: 0; }
-    .ai-sec-title {
-      font-size: .7rem; font-weight: 700; letter-spacing: .1em;
-      text-transform: uppercase; margin-bottom: 7px;
-      display: flex; align-items: center; gap: 5px;
+    .ai-body { padding: 0; display: none; }
+
+    /* セクション共通 */
+    .info-sec {
+      padding: 16px 20px; border-bottom: 1px solid var(--blue-pale);
     }
-    .ai-sec-title.meaning  { color: var(--blue-main); }
-    .ai-sec-title.talk     { color: var(--accent); }
-    .ai-sec-title.related  { color: var(--green); }
-    .ai-sec-title.refs     { color: #6a1b9a; }
-    .ai-meaning { font-size: .9rem; line-height: 1.8; }
-    .talk-box {
+    .info-sec:last-child { border-bottom: none; }
+    .info-sec-title {
+      font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+    }
+    .info-sec-title.overview   { color: var(--blue-main); }
+    .info-sec-title.strategy   { color: var(--green); }
+    .info-sec-title.competitor { color: var(--orange); }
+    .info-sec-title.challenges { color: var(--red); }
+    .info-sec-title.mrtalk     { color: var(--accent); }
+    .info-sec-title.refs       { color: var(--purple); }
+
+    /* 製品概要 */
+    .overview-text { font-size: .9rem; line-height: 1.8; }
+
+    /* 製品戦略 */
+    .strategy-box {
+      background: var(--green-light); border-left: 4px solid var(--green);
+      border-radius: 0 10px 10px 0; padding: 13px 15px; font-size: .88rem; line-height: 1.8;
+    }
+
+    /* 競合情報 */
+    .competitor-list { display: flex; flex-direction: column; gap: 8px; }
+    .competitor-item {
+      background: var(--orange-light); border-left: 4px solid var(--orange);
+      border-radius: 0 10px 10px 0; padding: 10px 14px;
+    }
+    .competitor-name { font-size: .88rem; font-weight: 700; color: var(--orange); margin-bottom: 3px; }
+    .competitor-company { font-size: .75rem; color: var(--gray-600); margin-bottom: 4px; }
+    .competitor-point { font-size: .83rem; line-height: 1.6; }
+
+    /* 課題・リスク */
+    .challenges-box {
+      background: var(--red-light); border-left: 4px solid var(--red);
+      border-radius: 0 10px 10px 0; padding: 13px 15px; font-size: .88rem; line-height: 1.8;
+    }
+
+    /* MR訴求トーク */
+    .mrtalk-box {
       background: var(--accent-light); border-left: 4px solid var(--accent);
       border-radius: 0 10px 10px 0; padding: 13px 15px;
       font-size: .87rem; line-height: 1.8; position: relative;
     }
-    .talk-box::before { content:'💬'; position:absolute; top:10px; right:12px; opacity:.4; }
-    .related-chips { display: flex; flex-wrap: wrap; gap: 7px; }
-    .related-chip {
-      background: var(--green-light); color: var(--green);
-      border: 1px solid #a5d6a7; border-radius: 20px;
-      padding: 5px 13px; font-size: .78rem; font-weight: 600;
-      cursor: pointer; transition: all .2s;
+    .mrtalk-box::before { content:'🗣'; position:absolute; top:10px; right:12px; opacity:.4; font-size:1.1rem; }
+
+    /* 参考文献 */
+    .refs-list { display: flex; flex-direction: column; gap: 10px; }
+    .ref-item {
+      background: var(--purple-light); border: 1px solid #e1bee7; border-left: 4px solid var(--purple);
+      border-radius: 0 10px 10px 0; padding: 11px 14px; transition: background .2s;
     }
-    .related-chip:hover { background: #c8e6c9; transform: translateY(-1px); }
+    .ref-item:hover { background: #ede7f6; }
+    .ref-item a { text-decoration: none; color: inherit; display: block; }
+    .ref-badge {
+      display: inline-block; font-size: .65rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 20px; margin-bottom: 5px;
+    }
+    .ref-badge.pubmed  { background: var(--blue-pale); color: var(--blue-main); }
+    .ref-badge.pmda    { background: #e8f5e9; color: var(--green); }
+    .ref-badge.wiki-ja { background: var(--green-light); color: var(--green); }
+    .ref-badge.wiki-en { background: var(--orange-light); color: var(--orange); }
+    .ref-title    { font-size: .83rem; font-weight: 700; line-height: 1.5; color: var(--purple); margin-bottom: 3px; }
+    .ref-title-ja { font-size: .78rem; color: var(--gray-600); line-height: 1.5; margin-bottom: 3px; font-style: italic; }
+    .ref-meta     { font-size: .72rem; color: var(--gray-600); }
+    .ref-url      { font-size: .72rem; color: var(--purple); word-break: break-all; margin-top: 3px; opacity: .8; }
+    .refs-loading {
+      display: none; align-items: center; gap: 8px;
+      font-size: .82rem; color: var(--gray-600); padding: 6px 0;
+    }
+    .refs-spinner {
+      width: 14px; height: 14px; flex-shrink: 0;
+      border: 2px solid #e1bee7; border-top-color: var(--purple);
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
     .cursor {
       display: inline-block; width: 2px; height: 1em;
       background: var(--blue-main); vertical-align: text-bottom;
@@ -179,38 +227,7 @@
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
-    /* ===== 参考文献 ===== */
-    .refs-list { display: flex; flex-direction: column; gap: 10px; }
-    .ref-item {
-      background: #f9f0ff; border: 1px solid #e1bee7;
-      border-left: 4px solid #9c27b0;
-      border-radius: 0 10px 10px 0;
-      padding: 11px 14px; transition: background .2s;
-    }
-    .ref-item:hover { background: #f3e5f5; }
-    .ref-item a { text-decoration: none; color: inherit; display: block; }
-    .ref-badge {
-      display: inline-block; font-size: .65rem; font-weight: 700;
-      padding: 2px 8px; border-radius: 20px; margin-bottom: 5px;
-    }
-    .ref-badge.pubmed  { background: #e3f2fd; color: #1565c0; }
-    .ref-badge.wiki-ja { background: #e8f5e9; color: #2e7d32; }
-    .ref-badge.wiki-en { background: #fff3e0; color: #e65100; }
-    .ref-title    { font-size: .83rem; font-weight: 700; line-height: 1.5; color: #4a148c; margin-bottom: 3px; }
-    .ref-title-ja { font-size: .78rem; color: var(--gray-600); line-height: 1.5; margin-bottom: 3px; font-style: italic; }
-    .ref-meta     { font-size: .72rem; color: var(--gray-600); line-height: 1.4; }
-    .ref-url      { font-size: .72rem; color: #9c27b0; word-break: break-all; margin-top: 3px; opacity: .8; }
-    .refs-loading {
-      display: none; align-items: center; gap: 8px;
-      font-size: .82rem; color: var(--gray-600); padding: 6px 0;
-    }
-    .refs-spinner {
-      width: 14px; height: 14px; flex-shrink: 0;
-      border: 2px solid #e1bee7; border-top-color: #9c27b0;
-      border-radius: 50%; animation: spin .7s linear infinite;
-    }
-
-    /* ===== Sample section ===== */
+    /* ===== Sample Cards ===== */
     .section-label {
       font-size: .78rem; font-weight: 700; color: var(--blue-main);
       letter-spacing: .08em; text-transform: uppercase;
@@ -219,36 +236,28 @@
     .section-label::after { content:''; flex:1; height:1px; background:var(--gray-300); }
     .filter-bar { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:20px; }
     .filter-btn {
-      padding: 5px 14px; border-radius: 20px;
-      border: 2px solid var(--gray-300); background: var(--white);
-      color: var(--gray-600); font-size: .8rem; cursor: pointer;
-      font-weight: 600; transition: all .2s;
+      padding: 5px 14px; border-radius: 20px; border: 2px solid var(--gray-300);
+      background: var(--white); color: var(--gray-600); font-size: .8rem;
+      cursor: pointer; font-weight: 600; transition: all .2s;
     }
     .filter-btn:hover  { border-color: var(--blue-light); color: var(--blue-main); }
     .filter-btn.active { background: var(--blue-main); border-color: var(--blue-main); color: var(--white); }
     .sample-search-wrap { margin-bottom: 16px; position: relative; }
     .sample-search-input {
-      width: 100%; padding: 10px 14px 10px 38px;
-      border: 2px solid var(--gray-300); border-radius: 10px;
-      font-size: .88rem; outline: none; background: var(--white); transition: border-color .2s;
+      width: 100%; padding: 10px 14px 10px 38px; border: 2px solid var(--gray-300);
+      border-radius: 10px; font-size: .88rem; outline: none; background: var(--white); transition: border-color .2s;
     }
     .sample-search-input:focus { border-color: var(--blue-light); }
-    .sample-search-icon {
-      position: absolute; left: 12px; top: 50%;
-      transform: translateY(-50%); font-size: .95rem; pointer-events: none;
-    }
+    .sample-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: .95rem; pointer-events: none; }
     .result-count { font-size: .83rem; color: var(--gray-600); margin-bottom: 16px; }
     .result-count strong { color: var(--blue-main); }
     .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 16px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;
     }
     @media (max-width: 560px) { .cards-grid { grid-template-columns: 1fr; } }
     .card {
-      background: var(--white); border-radius: var(--radius);
-      box-shadow: var(--shadow-sm); overflow: hidden;
-      transition: box-shadow .25s, transform .25s;
+      background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-sm);
+      overflow: hidden; transition: box-shadow .25s, transform .25s;
       border: 1px solid rgba(21,101,192,.08); cursor: pointer;
     }
     .card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
@@ -257,40 +266,41 @@
       display: flex; align-items: flex-start; gap: 10px;
     }
     .card-icon {
-      width: 40px; height: 40px; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem; flex-shrink: 0;
+      width: 42px; height: 42px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;
     }
-    .card-term { font-size: .97rem; font-weight: 800; color: var(--blue-dark); line-height: 1.3; margin-bottom: 4px; }
-    .card-cat  { display:inline-block; font-size:.68rem; font-weight:700; padding:2px 9px; border-radius:20px; }
-    .card-body { padding: 13px 16px; }
-    .card-sec  { font-size:.68rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; margin-bottom:5px; display:flex; align-items:center; gap:5px; }
-    .card-sec.meaning { color: var(--blue-main); }
-    .card-sec.talk    { color: var(--accent); }
-    .card-meaning { font-size:.85rem; line-height:1.75; margin-bottom:11px; }
-    .card-talk {
-      background: var(--accent-light); border-left: 3px solid var(--accent);
-      border-radius: 0 8px 8px 0; padding: 10px 12px;
-      font-size: .83rem; line-height: 1.7; position: relative;
+    .card-brand  { font-size: 1rem; font-weight: 800; color: var(--blue-dark); line-height: 1.2; margin-bottom: 2px; }
+    .card-generic{ font-size: .72rem; color: var(--gray-600); margin-bottom: 4px; }
+    .card-cat    { display:inline-block; font-size:.68rem; font-weight:700; padding:2px 9px; border-radius:20px; }
+    .card-body   { padding: 13px 16px; }
+    .card-sec    { font-size:.68rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; margin-bottom:5px; display:flex; align-items:center; gap:5px; }
+    .card-sec.strategy   { color: var(--green); }
+    .card-sec.competitor { color: var(--orange); }
+    .card-text   { font-size:.83rem; line-height:1.7; margin-bottom:10px; }
+    .card-comp   {
+      background: var(--orange-light); border-left: 3px solid var(--orange);
+      border-radius: 0 8px 8px 0; padding: 8px 12px; font-size: .8rem; line-height: 1.6;
     }
-    .card-talk::before { content:'💬'; position:absolute; top:7px; right:9px; font-size:.82rem; opacity:.4; }
-    .cat-ai        { background:#e8eaf6; color:#3949ab; }
-    .cat-drug      { background:#e8f5e9; color:#2e7d32; }
-    .cat-clinical  { background:#fff3e0; color:#e65100; }
-    .cat-molecule  { background:#fce4ec; color:#c62828; }
-    .cat-regulatory{ background:#f3e5f5; color:#6a1b9a; }
-    .cat-ai-icon        { background:#e8eaf6; }
-    .cat-drug-icon      { background:#e8f5e9; }
-    .cat-clinical-icon  { background:#fff3e0; }
-    .cat-molecule-icon  { background:#fce4ec; }
-    .cat-regulatory-icon{ background:#f3e5f5; }
+
+    /* カテゴリ色 */
+    .cat-dm       { background:#e8f5e9; color:#2e7d32; }
+    .cat-onco     { background:#fce4ec; color:#c62828; }
+    .cat-cardio   { background:#e3f2fd; color:#1565c0; }
+    .cat-immuno   { background:#f3e5f5; color:#6a1b9a; }
+    .cat-neuro    { background:#fff3e0; color:#e65100; }
+    .cat-other    { background:#f5f5f5; color:#546e7a; }
+    .cat-dm-icon      { background:#e8f5e9; }
+    .cat-onco-icon    { background:#fce4ec; }
+    .cat-cardio-icon  { background:#e3f2fd; }
+    .cat-immuno-icon  { background:#f3e5f5; }
+    .cat-neuro-icon   { background:#fff3e0; }
+    .cat-other-icon   { background:#f5f5f5; }
+
     mark { background:#fff176; border-radius:3px; padding:0 2px; color:inherit; }
     .no-result { text-align:center; padding:48px 16px; color:var(--gray-600); display:none; }
     .no-result .icon { font-size:2.6rem; margin-bottom:12px; }
-    .no-result h3 { font-size:1rem; margin-bottom:6px; color:var(--gray-800); }
     footer {
-      text-align:center; padding:22px 16px;
-      font-size:.75rem; color:var(--gray-600);
+      text-align:center; padding:22px 16px; font-size:.75rem; color:var(--gray-600);
       border-top:1px solid var(--gray-300); background:var(--white);
     }
   </style>
@@ -303,8 +313,8 @@
     <div class="header-logo">
       <div class="logo-icon">💊</div>
       <div>
-        <div class="header-title">PharmaAI 用語辞典</div>
-        <div class="header-sub">Pharma &amp; AI Glossary</div>
+        <div class="header-title">PharmaInfo Japan</div>
+        <div class="header-sub">医療用医薬品 MR営業支援ツール</div>
       </div>
     </div>
     <div class="header-badge">
@@ -316,64 +326,82 @@
 
 <!-- ===== Hero ===== -->
 <section class="hero">
-  <p class="hero-eyebrow">製薬 × AI 営業支援ツール</p>
-  <h1 class="hero-heading">どんな専門用語も<br>AIが即座に解説・営業トーク化</h1>
-  <p class="hero-desc">用語を入力するだけで「意味」と「営業トーク例」をAIがリアルタイム生成</p>
+  <p class="hero-eyebrow">MR × AI 医薬品情報支援</p>
+  <h1 class="hero-heading">医薬品名を入れるだけで<br>製品戦略・競合・課題を即表示</h1>
+  <p class="hero-desc">ジャディアンス、キイトルーダなど日本の医療用医薬品をAIが即座に分析</p>
   <div class="search-wrap">
     <div class="search-row">
-      <span class="search-icon">🔍</span>
+      <span class="search-icon">💊</span>
       <input id="searchInput" class="search-input" type="text"
-        placeholder="例：LLM、AlphaFold、バイオマーカー…" autocomplete="off"/>
+        placeholder="例：ジャディアンス、キイトルーダ、オゼンピック…" autocomplete="off"/>
       <button id="searchBtn" class="search-btn">
-        <span>✨</span><span id="searchBtnText">AI解説</span>
+        <span>✨</span><span id="searchBtnText">AI分析</span>
       </button>
     </div>
     <div class="hint-row" id="hintRow">
-      <span class="hint-chip" data-term="LLM">LLM</span>
-      <span class="hint-chip" data-term="AlphaFold">AlphaFold</span>
-      <span class="hint-chip" data-term="分散型臨床試験">分散型臨床試験</span>
-      <span class="hint-chip" data-term="構造ベース創薬">構造ベース創薬</span>
-      <span class="hint-chip" data-term="RWD">RWD/RWE</span>
-      <span class="hint-chip" data-term="バイオマーカー">バイオマーカー</span>
+      <span class="hint-chip" data-term="ジャディアンス">ジャディアンス</span>
+      <span class="hint-chip" data-term="キイトルーダ">キイトルーダ</span>
+      <span class="hint-chip" data-term="オゼンピック">オゼンピック</span>
+      <span class="hint-chip" data-term="タグリッソ">タグリッソ</span>
+      <span class="hint-chip" data-term="エンレスト">エンレスト</span>
+      <span class="hint-chip" data-term="マンジャロ">マンジャロ</span>
     </div>
   </div>
 </section>
 
 <!-- ===== Main ===== -->
 <main>
+  <!-- AI Result Card -->
   <div class="ai-area">
     <div class="ai-card" id="aiCard">
       <div class="ai-card-header">
-        <div class="ai-card-icon" id="aiCardIcon">🤖</div>
-        <div>
-          <div class="ai-card-term" id="aiCardTerm"></div>
-          <span class="ai-card-cat" id="aiCardCat">解析中...</span>
+        <div class="ai-card-icon" id="aiCardIcon">💊</div>
+        <div class="ai-card-header-info">
+          <div class="ai-card-brand" id="aiCardBrand">—</div>
+          <div class="ai-card-generic" id="aiCardGeneric"></div>
+          <div class="ai-card-tags">
+            <span class="ai-tag" id="aiCardCompany"></span>
+            <span class="ai-tag" id="aiCardCategory"></span>
+          </div>
         </div>
       </div>
       <div class="ai-loading" id="aiLoading">
-        <div class="spinner"></div><span>AIが解析中です…</span>
+        <div class="spinner"></div><span>AIが分析中です…</span>
       </div>
       <div class="ai-error" id="aiError">
         <span>⚠️</span><span id="aiErrorMsg"></span>
       </div>
       <div class="ai-body" id="aiBody">
-        <div class="ai-sec">
-          <div class="ai-sec-title meaning">📖 意味・解説</div>
-          <div class="ai-meaning" id="aiMeaning"></div>
+        <!-- 製品概要 -->
+        <div class="info-sec">
+          <div class="info-sec-title overview">💊 製品概要</div>
+          <div class="overview-text" id="aiOverview"></div>
         </div>
-        <div class="ai-sec">
-          <div class="ai-sec-title talk">🗣 営業トーク例</div>
-          <div class="talk-box" id="aiTalk"></div>
+        <!-- 製品戦略 -->
+        <div class="info-sec">
+          <div class="info-sec-title strategy">📈 製品戦略・訴求ポイント</div>
+          <div class="strategy-box" id="aiStrategy"></div>
         </div>
-        <div class="ai-sec" id="aiRelatedSec" style="display:none">
-          <div class="ai-sec-title related">🔗 関連用語</div>
-          <div class="related-chips" id="aiRelated"></div>
+        <!-- 競合情報 -->
+        <div class="info-sec" id="aiCompetitorSec">
+          <div class="info-sec-title competitor">⚔️ 競合情報</div>
+          <div class="competitor-list" id="aiCompetitors"></div>
         </div>
-        <!-- 参考文献セクション -->
-        <div class="ai-sec" id="aiRefsSec">
-          <div class="ai-sec-title refs">📚 参考文献・エビデンス</div>
+        <!-- 課題・リスク -->
+        <div class="info-sec">
+          <div class="info-sec-title challenges">⚠️ 課題・リスク</div>
+          <div class="challenges-box" id="aiChallenges"></div>
+        </div>
+        <!-- MRトーク -->
+        <div class="info-sec">
+          <div class="info-sec-title mrtalk">🗣 MR訴求トーク例</div>
+          <div class="mrtalk-box" id="aiMrTalk"></div>
+        </div>
+        <!-- 参考文献 -->
+        <div class="info-sec">
+          <div class="info-sec-title refs">📚 参考文献・エビデンス</div>
           <div class="refs-loading" id="refsLoading">
-            <div class="refs-spinner"></div><span>PubMed・Wikipediaを検索中…</span>
+            <div class="refs-spinner"></div><span>PMDA・PubMed・Wikipediaを検索中…</span>
           </div>
           <div class="refs-list" id="refsList"></div>
         </div>
@@ -381,110 +409,116 @@
     </div>
   </div>
 
-  <div class="section-label">サンプル用語集 <span style="font-size:.7rem;font-weight:400;color:var(--gray-600);margin-left:4px;">クリックでAI解説</span></div>
+  <!-- Sample Cards -->
+  <div class="section-label">主要医薬品サンプル <span style="font-size:.7rem;font-weight:400;color:var(--gray-600);margin-left:4px;">クリックでAI分析</span></div>
   <div class="filter-bar" id="filterBar">
     <button class="filter-btn active" data-cat="all">すべて</button>
-    <button class="filter-btn" data-cat="AI技術">🤖 AI技術</button>
-    <button class="filter-btn" data-cat="創薬">💊 創薬</button>
-    <button class="filter-btn" data-cat="臨床試験">🏥 臨床試験</button>
-    <button class="filter-btn" data-cat="分子・生物">🧬 分子・生物</button>
-    <button class="filter-btn" data-cat="規制・薬事">📋 規制・薬事</button>
+    <button class="filter-btn" data-cat="糖尿病">🩸 糖尿病</button>
+    <button class="filter-btn" data-cat="がん">🎗 がん</button>
+    <button class="filter-btn" data-cat="循環器">❤️ 循環器</button>
+    <button class="filter-btn" data-cat="免疫・炎症">🛡 免疫・炎症</button>
+    <button class="filter-btn" data-cat="その他">💡 その他</button>
   </div>
   <div class="sample-search-wrap">
     <span class="sample-search-icon">🔍</span>
-    <input id="sampleSearch" class="sample-search-input" type="text" placeholder="用語を絞り込む…"/>
+    <input id="sampleSearch" class="sample-search-input" type="text" placeholder="薬品名・一般名で絞り込む…"/>
   </div>
   <div class="result-count" id="resultCount"></div>
   <div class="cards-grid" id="cardsGrid"></div>
   <div class="no-result" id="noResult">
     <div class="icon">🔍</div>
-    <h3>一致する用語が見つかりません</h3>
-    <p style="font-size:.84rem;margin-top:6px;">上の検索窓でAIに直接質問してみてください</p>
+    <h3>一致する薬品が見つかりません</h3>
+    <p style="font-size:.84rem;margin-top:6px;">上の検索窓で直接AIに分析させることができます</p>
   </div>
 </main>
 
 <footer>
-  © 2025 PharmaAI 用語辞典 &nbsp;|&nbsp; Powered by Groq &amp; EuropePMC &nbsp;|&nbsp; 製薬×AI 営業支援ツール
+  © 2025 PharmaInfo Japan &nbsp;|&nbsp; Powered by Groq AI &nbsp;|&nbsp; MR営業支援ツール &nbsp;|&nbsp;
+  <span style="color:#e53935;">※本ツールの情報は参考用です。必ず添付文書・PMDAを確認してください。</span>
 </footer>
 
 <script>
 // ============================================================
-//  Sample data（22用語）
+//  Sample data（主要医薬品10件）
 // ============================================================
 const SAMPLES = [
-  { term:"LLM（大規模言語モデル）", category:"AI技術", icon:"🤖",
-    meaning:"Large Language Model の略。膨大なテキストを学習し、自然言語の生成・理解・要約などを行うAI。GPT-4・Claudeが代表例。製薬では論文解析・規制文書作成・メディカルライティングへの応用が進んでいる。",
-    talk:"「弊社のLLMソリューションは治験プロトコル作成や有害事象レポートのドラフト生成に活用でき、メディカルライターの工数を最大60%削減した事例があります。申請書類作成の効率化にご関心はありませんか？」" },
-  { term:"AlphaFold", category:"AI技術", icon:"🧠",
-    meaning:"DeepMind開発のタンパク質立体構造予測AI。アミノ酸配列から3D構造を原子レベルで予測。創薬ターゲット探索と構造ベース設計の効率を劇的に向上させた。AlphaFold3では他分子との相互作用も予測可能。",
-    talk:"「AlphaFoldによる構造予測でX線結晶解析に数ヶ月かかった標的解析を数日に短縮できます。フェーズ1候補化合物の設計精度向上にお役立てできますよ。」" },
-  { term:"生成AI（Generative AI）", category:"AI技術", icon:"✨",
-    meaning:"新しいコンテンツ（テキスト・画像・構造など）を生成するAI技術。製薬では分子構造生成・規制文書ドラフト・患者向け説明資料作成など多岐にわたる活用が進んでいる。",
-    talk:"「生成AIを活用することで、治験説明文書の複数言語版作成や有害事象サマリーの自動ドラフト生成が可能となり、申請準備工数を大幅に削減できます。」" },
-  { term:"機械学習（ML）", category:"AI技術", icon:"⚙️",
-    meaning:"データからパターンを学習して予測・分類を行うAI技術。創薬では化合物活性予測・患者層別化・有害事象シグナル検出など幅広く活用されており、開発成功確率の向上に貢献している。",
-    talk:"「MLを活用した患者層別化プラットフォームにより、適応患者の特定精度が30%向上し、治験リクルート期間を短縮した事例があります。貴社のバイオマーカー戦略にも応用できます。」" },
-  { term:"自然言語処理（NLP）", category:"AI技術", icon:"💬",
-    meaning:"コンピュータが人間の言語（テキスト・音声）を理解・処理する技術。電子カルテの非構造化データ解析、論文自動要約、規制文書レビューなど製薬業務の効率化に活用。",
-    talk:"「NLPによる電子カルテ解析で、適格患者の特定にかかる時間を従来の1/5に短縮した事例があります。リクルート効率化とデータクオリティ向上を同時に実現できます。」" },
-  { term:"構造ベース創薬（SBDD）", category:"創薬", icon:"🔬",
-    meaning:"ターゲットタンパク質の3D構造情報をもとに最適な低分子化合物を設計する創薬アプローチ。AlphaFoldなどのAI構造予測と組み合わせることで効率が飛躍的に向上。",
-    talk:"「構造ベース創薬にAIドッキングシミュレーションを組み合わせることで、リード最適化サイクルを1回あたり数週間短縮できます。貴社の標的タンパクで試算をご提示することも可能です。」" },
-  { term:"低分子創薬", category:"創薬", icon:"💊",
-    meaning:"分子量が比較的小さい化合物を医薬品として開発するアプローチ。経口投与が可能で製造コストも抑えやすい。AIによるde novo設計やバーチャルスクリーニングと相性がよく、活性化合物探索を大幅に効率化できる。",
-    talk:"「低分子創薬の初期スクリーニングにAIバーチャルスクリーニングを活用することで、活性化合物候補を従来の1/10以下のコストで絞り込んだ事例があります。」" },
-  { term:"バーチャルスクリーニング", category:"創薬", icon:"🖥️",
-    meaning:"コンピュータ上で何百万もの化合物と標的タンパク質の相互作用を模擬評価し、活性が期待できる化合物を絞り込む技術。実験コスト・時間を大幅に削減する。",
-    talk:"「AIバーチャルスクリーニングにより1億以上の化合物ライブラリから有望候補を数日で絞り込み、ヒット率を5倍向上させた事例があります。スクリーニングコスト削減にお役立てできます。」" },
-  { term:"de novo分子設計", category:"創薬", icon:"🧪",
-    meaning:"既存化合物に縛られず、AIが標的タンパクに最適な全く新しい分子構造をゼロから生成する技術。生成AI（Generative AI）の応用で実用化が急速に進んでいる。",
-    talk:"「de novo設計AIにより、従来の化合物ライブラリに存在しなかった新規スキャフォールドの候補を生成し、特許空白領域でのリード探索を加速できます。」" },
-  { term:"分散型臨床試験（DCT）", category:"臨床試験", icon:"🏥",
-    meaning:"遠隔モニタリング・電子同意・ウェアラブルデバイスを活用し、患者が来院しなくても参加できる臨床試験モデル。患者負担の軽減、リクルート加速、脱落率低下が主なメリット。",
-    talk:"「DCT導入で患者リクルート期間が平均35%短縮され、地方在住患者の参加率が大幅向上した事例があります。プロトコル設計段階からDCT要素を取り入れることで開発期間全体を短縮できます。」" },
-  { term:"治験効率化", category:"臨床試験", icon:"⚡",
-    meaning:"AI・デジタル技術を活用して臨床試験の設計・実施・解析を効率化すること。電子化同意（eConsent）、リモートモニタリング、データ自動クリーニングなどが含まれる。",
-    talk:"「AIを活用した試験設計最適化とリモートモニタリングの組み合わせにより、プロトコル逸脱率30%削減・データクリーニング期間を50%短縮した事例があります。」" },
-  { term:"アダプティブデザイン", category:"臨床試験", icon:"🔄",
-    meaning:"事前に計画した規則に基づき、中間解析の結果を受けて用量・対象・エンドポイントなどを適応的に変更できる柔軟な試験デザイン。開発期間短縮と成功確率向上に寄与する。",
-    talk:"「アダプティブデザインを採用することで、有効性が低い用量群を早期に閉鎖し患者安全性を確保しながら、リソースを有望用量に集中投資できます。」" },
-  { term:"RWD / RWE", category:"臨床試験", icon:"📈",
-    meaning:"電子カルテ・レセプト・患者レジストリなどの実臨床データ（RWD）から得られるエビデンス（RWE）。承認後の有効性・安全性評価や外部対照群として活用が進んでいる。",
-    talk:"「RWDを活用した外部対照群を採用することで、倫理的に難しい希少疾患の試験でも規制当局の承認を取得した事例があります。希少疾患開発のご支援ができます。」" },
-  { term:"バイオマーカー", category:"分子・生物", icon:"🎯",
-    meaning:"疾患の存在・重症度・薬効を客観的に測定できる生物学的指標（タンパク、遺伝子変異、代謝物など）。コンパニオン診断・患者層別化・代替エンドポイントとして活用される。",
-    talk:"「バイオマーカー戦略を早期から組み込むことで、患者層別化により全体のNNT（治療必要数）を下げ、治験の成功確率を高められます。コンパニオン診断との同時開発についてもご提案できます。」" },
-  { term:"マルチオミクス", category:"分子・生物", icon:"🔗",
-    meaning:"ゲノミクス・トランスクリプトミクス・プロテオミクス・メタボロミクスなど複数のオミクスデータを統合解析するアプローチ。単一オミクスでは見えない疾患メカニズムや薬剤標的を明らかにできる。",
-    talk:"「マルチオミクス統合解析プラットフォームを活用することで、疾患の全体像を多角的に把握し、新たなターゲットを効率的に絞り込めます。競合に差をつける探索戦略になります。」" },
-  { term:"バイオインフォマティクス", category:"分子・生物", icon:"💻",
-    meaning:"生物学的データ（ゲノム・タンパク質・代謝など）をコンピュータで解析する学問分野。ゲノム解読・タンパク質機能予測・薬剤標的探索など創薬のあらゆる段階で活用される。",
-    talk:"「バイオインフォマティクスによる網羅的ゲノム解析で、これまで見逃されていた新規創薬標的を発見した事例があります。貴社のパイプラインに革新的ターゲットをご提案できます。」" },
-  { term:"ADMET予測", category:"分子・生物", icon:"⚗️",
-    meaning:"吸収・分布・代謝・排泄・毒性をAIで予測する技術。化合物の薬物動態・安全性プロファイルを合成前に評価でき、前臨床段階の失敗を大幅に減らせる。",
-    talk:"「in silico ADMET予測をリード最適化に組み込むことで、代謝安定性・hERG毒性に問題のある化合物を早期に除外し、前臨床試験への持ち込み化合物の品質を上げることができます。」" },
-  { term:"レギュラトリーサイエンス", category:"規制・薬事", icon:"⚖️",
-    meaning:"医薬品・医療機器の有効性・安全性・品質を評価するための科学的手法・基準を研究・開発する学問。AIや新技術を迅速に審査・承認体制に取り込むための基盤となる。",
-    talk:"「レギュラトリーサイエンスの最新動向を踏まえ、AI活用データをどう規制当局に提示するか、提出戦略の段階から一緒に考えることで承認確率を高められます。」" },
-  { term:"eCTD（電子申請資料）", category:"規制・薬事", icon:"📁",
-    meaning:"電子的コモン・テクニカル・ドキュメントの略。医薬品の規制申請に必要な全ての資料をICH形式で電子化・構造化したもの。日米欧で標準化されており、AIによる作成支援ツールが普及中。",
-    talk:"「eCTD作成にAIライティングツールを活用することで、モジュール2・3の初期ドラフト作成時間を従来比40%短縮した事例があります。申請準備の効率化をサポートします。」" },
-  { term:"ファーマコビジランス（PV）", category:"規制・薬事", icon:"🛡️",
-    meaning:"医薬品の安全性情報を収集・評価・報告する薬剤警戒活動。AIによるシグナル検出・MedDRAコーディング自動化が急速に普及している。",
-    talk:"「AIを活用したファーマコビジランス自動化システムにより、有害事象レポートの処理速度を従来比3〜5倍に向上させつつ、規制当局への報告期限遵守率を大幅に改善した事例をご紹介できます。」" },
-  { term:"希少疾患開発（オーファン）", category:"規制・薬事", icon:"🌿",
-    meaning:"患者数が少ない希少疾患を対象とした医薬品開発。規制上の優遇措置が各国で整備されている。小規模試験でのエビデンス創出にAIやRWDの活用が特に有効。",
-    talk:"「希少疾患では少ない患者数で有効性を示す必要があるため、AIによる患者特定・バイオマーカー戦略・RWD活用が競争優位につながります。希少疾患パイプラインの加速を一緒に考えましょう。」" },
-  { term:"PMDAとの事前相談", category:"規制・薬事", icon:"🗂️",
-    meaning:"医薬品医療機器総合機構（PMDA）が承認申請前に開発企業と行う相談制度。治験相談・対面助言などがあり、開発初期から規制当局の見解を確認できる。",
-    talk:"「PMDA事前相談を活用することで、申請戦略の方向性を早期に確認でき、申請後の照会事項を最小化できます。AIデータ活用に関するPMDAの最新見解も共有できます。」" },
+  {
+    brand: "ジャディアンス", generic: "エンパグリフロジン", company: "日本ベーリンガーインゲルハイム/イーライリリー",
+    category: "糖尿病", catKey: "糖尿病", icon: "🩸",
+    indication: "2型糖尿病、慢性心不全、慢性腎臓病",
+    strategy: "SGLT2阻害薬として心保護・腎保護エビデンス（EMPA-REG OUTCOME試験）が強み。心不全・CKD適応追加により循環器・腎臓内科にも訴求可能。ガイドライン第1選択薬として採用増加中。",
+    competitor: "フォシーガ（アストラゼネカ）、カナグル（田辺三菱）など同クラスSGLT2阻害薬との差別化がカギ。心血管イベント抑制の豊富なエビデンスが強み。"
+  },
+  {
+    brand: "キイトルーダ", generic: "ペムブロリズマブ", company: "MSD",
+    category: "がん", catKey: "がん", icon: "🎗",
+    indication: "非小細胞肺がん・悪性黒色腫・胃がん・食道がんなど多数",
+    strategy: "PD-1阻害薬として幅広いがん腫に承認。MSI-Hという腫瘍遺伝子特性での横断的適応が特徴。TMB-H適応も取得。コンパニオン診断との連携でターゲット患者を明確化。",
+    competitor: "オプジーボ（BMS）との競合が主。適応取得の早さと適応がん種の多さが強み。第1選択での採用を目指すEGFR/ALK陰性NSCLCで特に重要。"
+  },
+  {
+    brand: "オゼンピック", generic: "セマグルチド（注射）", company: "ノボノルディスク",
+    category: "糖尿病", catKey: "糖尿病", icon: "💉",
+    indication: "2型糖尿病",
+    strategy: "週1回皮下注のGLP-1受容体作動薬。SUSTAIN試験で高い血糖降下・体重減少効果を実証。心血管リスク低下（SUSTAIN-6）も訴求ポイント。経口製剤（リベルサス）との組み合わせ戦略も展開。",
+    competitor: "マンジャロ（GIP/GLP-1）、ビクトーザとの差別化。週1回投与の利便性と豊富なエビデンスが強み。肥満症適応（ウゴービ）取得で市場拡大中。"
+  },
+  {
+    brand: "タグリッソ", generic: "オシメルチニブ", company: "アストラゼネカ",
+    category: "がん", catKey: "がん", icon: "🫁",
+    indication: "EGFR変異陽性非小細胞肺がん（1次・2次治療）",
+    strategy: "第3世代EGFR-TKIとして脳転移にも有効な中枢神経系移行性が特徴。FLAURA試験で1次治療としての優越性を証明。T790M変異に対する2次治療と術後補助療法（ADAURA）でも承認取得。",
+    competitor: "ジオトリフ、イレッサなど第1・2世代EGFR-TKIとの差別化。耐性変異克服と脳転移有効性がキーポイント。"
+  },
+  {
+    brand: "エンレスト", generic: "サクビトリル/バルサルタン", company: "ノバルティス",
+    category: "循環器", catKey: "循環器", icon: "❤️",
+    indication: "慢性心不全（HFrEF）",
+    strategy: "ARNI（アンジオテンシン受容体ネプリライシン阻害薬）という新作用機序。PARADIGM-HF試験でACE阻害薬比死亡率20%減。心不全ガイドライン最高推奨グレード取得。HFpEF適応も追加。",
+    competitor: "ACE阻害薬・ARBからの切り替え促進が主な営業課題。低血圧に注意が必要で導入ハードルが課題。"
+  },
+  {
+    brand: "マンジャロ", generic: "チルゼパチド", company: "イーライリリー",
+    category: "糖尿病", catKey: "糖尿病", icon: "⭐",
+    indication: "2型糖尿病",
+    strategy: "世界初のGIP/GLP-1デュアル受容体作動薬。SURPASS試験でセマグルチド比でも高い血糖・体重改善効果を実証。日本でも肥満症適応（ゼップバウンド）取得予定でさらなる市場拡大が見込まれる。",
+    competitor: "オゼンピック（セマグルチド）が主な競合。デュアル作用による優れた体重減少効果で差別化。SGLT2阻害薬との併用エビデンスも蓄積中。"
+  },
+  {
+    brand: "オプジーボ", generic: "ニボルマブ", company: "小野薬品工業/BMS",
+    category: "がん", catKey: "がん", icon: "🧬",
+    indication: "悪性黒色腫・非小細胞肺がん・胃がん・腎細胞がんなど",
+    strategy: "日本発のPD-1阻害薬として国内第1号承認の先行優位性。小野薬品との共同販売で国内に強固な基盤。各がん腫のガイドライン記載も充実。キイトルーダとの競合が最大の課題。",
+    competitor: "キイトルーダ（MSD）との直接競合。適応がん種や試験デザインの違いで個々の患者選択が判断基準となる。"
+  },
+  {
+    brand: "ヒュミラ", generic: "アダリムマブ", company: "アッヴィ",
+    category: "免疫・炎症", catKey: "免疫・炎症", icon: "🛡",
+    indication: "関節リウマチ・クローン病・潰瘍性大腸炎・乾癬など",
+    strategy: "TNF阻害薬として長年の豊富な臨床実績。関節リウマチの第1選択生物学的製剤。ただしバイオシミラー参入により市場シェアが低下。原薬の信頼性・製剤の安定供給を訴求。",
+    competitor: "バイオシミラー（ヒュミラBSなど）が最大の脅威。エンブレル（ファイザー）、アクテムラ（中外）など他機序との差別化も重要。"
+  },
+  {
+    brand: "イクスタンジ", generic: "エンザルタミド", company: "アステラス製薬/ファイザー",
+    category: "がん", catKey: "がん", icon: "🔬",
+    indication: "去勢抵抗性前立腺がん・非転移性去勢感受性前立腺がん",
+    strategy: "次世代アンドロゲン受容体阻害薬。PREVAIL試験・ARCHES試験で全生存期間延長を証明。日本でのアステラス製薬主導による強力なMR活動基盤。ホルモン感受性期からの早期導入が重要訴求。",
+    competitor: "ザイティガ（ヤンセン）、ニュベクオ（バイエル）との差別化。投与タイミング・副作用プロファイルが選択基準。"
+  },
+  {
+    brand: "スキリージ", generic: "リサンキズマブ", company: "アッヴィ",
+    category: "免疫・炎症", catKey: "免疫・炎症", icon: "✨",
+    indication: "局面型乾癬・関節症性乾癬・クローン病・潰瘍性大腸炎",
+    strategy: "IL-23p19選択的阻害薬として高い皮膚症状改善率（PASI100達成率）を訴求。12週1回投与の高い利便性。炎症性腸疾患適応追加で対象患者が大幅拡大。アッヴィ社の次世代免疫製剤として戦略製品。",
+    competitor: "コセンティクス（IL-17A）、トレムフィア（IL-23）との差別化。PASI100達成率の高さと長い投与間隔が強み。"
+  },
 ];
 
 // ============================================================
 //  Helpers
 // ============================================================
-const catClass = { "AI技術":"ai","創薬":"drug","臨床試験":"clinical","分子・生物":"molecule","規制・薬事":"regulatory" };
-function getCatCls(c){ return catClass[c]||"ai"; }
+const catKeyMap = { "糖尿病":"dm","がん":"onco","循環器":"cardio","免疫・炎症":"immuno","その他":"other" };
+function getCatCls(c){ return catKeyMap[c]||"other"; }
 function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function unesc(s){ return s.replace(/\\n/g,'\n').replace(/\\t/g,'\t').replace(/\\"/g,'"').replace(/\\\\/g,'\\'); }
 function highlight(text, kw) {
@@ -494,26 +528,19 @@ function highlight(text, kw) {
 }
 
 // ============================================================
-//  AI 有効状態をサーバーから確認
+//  AI 有効状態確認
 // ============================================================
 let aiEnabled = false;
-
 async function checkAIStatus() {
   try {
     const res  = await fetch('/api/health');
     const data = await res.json();
     aiEnabled = data.aiEnabled === true;
   } catch { aiEnabled = false; }
-
   const dot   = document.getElementById('aiDot');
   const badge = document.getElementById('badgeText');
-  if (aiEnabled) {
-    dot.classList.remove('off');
-    badge.textContent = 'AI 有効';
-  } else {
-    dot.classList.add('off');
-    badge.textContent = 'AI 準備中';
-  }
+  if (aiEnabled) { dot.classList.remove('off'); badge.textContent = 'AI 有効'; }
+  else           { dot.classList.add('off');    badge.textContent = 'AI 準備中'; }
 }
 
 // ============================================================
@@ -521,38 +548,39 @@ async function checkAIStatus() {
 // ============================================================
 function doSearch(term) {
   if (!term.trim()) return;
-  if (!aiEnabled) {
-    showSampleResult(term);
-    return;
-  }
+  if (!aiEnabled) { showSampleResult(term); return; }
   doAISearch(term);
 }
 
 function showSampleResult(term) {
   const q     = term.trim().toLowerCase();
   const match = SAMPLES.find(s =>
-    s.term.toLowerCase().includes(q) || s.meaning.toLowerCase().includes(q)
+    s.brand.toLowerCase().includes(q) || s.generic.toLowerCase().includes(q) || s.indication.toLowerCase().includes(q)
   );
   const card = document.getElementById('aiCard');
   card.classList.add('visible');
-  document.getElementById('aiCardTerm').textContent = term.trim();
-  document.getElementById('aiLoading').style.display = 'none';
-  document.getElementById('aiError').style.display   = 'none';
-  document.getElementById('aiRefsSec').style.display = 'none';
+  document.getElementById('aiLoading').style.display  = 'none';
+  document.getElementById('aiError').style.display    = 'none';
+  document.getElementById('aiBody').style.display     = 'none';
   if (match) {
-    document.getElementById('aiCardIcon').textContent = match.icon;
-    document.getElementById('aiCardCat').textContent  = match.category;
-    document.getElementById('aiMeaning').textContent  = match.meaning;
-    document.getElementById('aiTalk').textContent     = match.talk;
-    document.getElementById('aiRelatedSec').style.display = 'none';
-    document.getElementById('aiBody').style.display   = 'block';
-    document.getElementById('aiRefsSec').style.display = 'none';
+    document.getElementById('aiCardBrand').textContent    = match.brand;
+    document.getElementById('aiCardGeneric').textContent  = match.generic;
+    document.getElementById('aiCardCompany').textContent  = match.company;
+    document.getElementById('aiCardCategory').textContent = match.catKey;
+    document.getElementById('aiCardIcon').textContent     = match.icon;
+    document.getElementById('aiOverview').textContent     = match.indication;
+    document.getElementById('aiStrategy').textContent     = match.strategy;
+    document.getElementById('aiCompetitors').innerHTML    = `<div class="competitor-item"><div class="competitor-point">${esc(match.competitor)}</div></div>`;
+    document.getElementById('aiChallenges').textContent   = '';
+    document.getElementById('aiMrTalk').textContent       = '';
+    document.getElementById('aiBody').style.display       = 'block';
+    document.getElementById('refsLoading').style.display  = 'none';
+    document.getElementById('refsList').innerHTML         = '';
   } else {
-    document.getElementById('aiCardIcon').textContent = '🔍';
-    document.getElementById('aiCardCat').textContent  = '検索結果';
-    document.getElementById('aiBody').style.display   = 'none';
-    document.getElementById('aiError').style.display  = 'flex';
-    document.getElementById('aiErrorMsg').textContent = 'サンプル用語集に見つかりませんでした。別の用語をお試しください。';
+    document.getElementById('aiCardBrand').textContent = term.trim();
+    document.getElementById('aiCardIcon').textContent  = '🔍';
+    document.getElementById('aiError').style.display   = 'flex';
+    document.getElementById('aiErrorMsg').textContent  = 'サンプルに見つかりませんでした。別の薬品名をお試しください。';
   }
   card.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
@@ -565,54 +593,49 @@ async function doAISearch(term) {
 
   const card = document.getElementById('aiCard');
   card.classList.add('visible');
-  document.getElementById('aiCardTerm').textContent = term.trim();
-  document.getElementById('aiCardCat').textContent  = '解析中...';
-  document.getElementById('aiCardIcon').textContent = '🤖';
-  document.getElementById('aiLoading').style.display = 'flex';
-  document.getElementById('aiBody').style.display    = 'none';
-  document.getElementById('aiError').style.display   = 'none';
-  document.getElementById('aiRefsSec').style.display = 'none';
+  document.getElementById('aiCardBrand').textContent    = term.trim();
+  document.getElementById('aiCardGeneric').textContent  = '';
+  document.getElementById('aiCardCompany').textContent  = '解析中…';
+  document.getElementById('aiCardCategory').textContent = '';
+  document.getElementById('aiCardIcon').textContent     = '💊';
+  document.getElementById('aiLoading').style.display    = 'flex';
+  document.getElementById('aiBody').style.display       = 'none';
+  document.getElementById('aiError').style.display      = 'none';
   card.scrollIntoView({ behavior:'smooth', block:'nearest' });
 
   const btn = document.getElementById('searchBtn');
   btn.disabled = true;
-  btn.innerHTML = '<span>⏳</span><span>生成中…</span>';
+  btn.innerHTML = '<span>⏳</span><span>分析中…</span>';
 
-  const parsed = { meaning:'', talk:'', category:'', icon:'', related:[] };
   let streamBuf = '';
+  const parsed  = {};
 
   document.getElementById('aiLoading').style.display = 'none';
   document.getElementById('aiBody').style.display    = 'block';
-  document.getElementById('aiRefsSec').style.display = 'block';
-  document.getElementById('aiMeaning').innerHTML = '<span class="cursor"></span>';
-  document.getElementById('aiTalk').innerHTML    = '<span class="cursor"></span>';
-  document.getElementById('refsList').innerHTML  = '';
+  document.getElementById('aiOverview').innerHTML    = '<span class="cursor"></span>';
+  document.getElementById('aiStrategy').innerHTML   = '<span class="cursor"></span>';
+  document.getElementById('aiChallenges').innerHTML = '<span class="cursor"></span>';
+  document.getElementById('aiMrTalk').innerHTML     = '<span class="cursor"></span>';
+  document.getElementById('aiCompetitors').innerHTML = '';
+  document.getElementById('refsList').innerHTML      = '';
   document.getElementById('refsLoading').style.display = 'flex';
 
   try {
-    // APIキーはサーバー側で管理 — クライアントはtermだけ送る
     const resp = await fetch('/api/explain', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ term: term.trim() }),
-      signal:  currentController.signal
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ term: term.trim() }), signal: currentController.signal
     });
-
     if (!resp.ok) {
       const data = await resp.json().catch(()=>({}));
-      throw new Error(data.error === 'AI_UNAVAILABLE'
-        ? 'AI機能は現在準備中です。しばらくお待ちください。'
-        : `サーバーエラー (${resp.status})`);
+      throw new Error(data.error === 'AI_UNAVAILABLE' ? 'AI機能は現在準備中です。' : `サーバーエラー (${resp.status})`);
     }
 
     const reader  = resp.body.getReader();
     const decoder = new TextDecoder();
-
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      const text = decoder.decode(value, { stream:true });
-      for (const line of text.split('\n')) {
+      for (const line of decoder.decode(value, { stream:true }).split('\n')) {
         const t = line.trim();
         if (!t || t === 'data: [DONE]') continue;
         if (t.startsWith('data: ')) {
@@ -639,19 +662,33 @@ async function doAISearch(term) {
     document.getElementById('refsLoading').style.display = 'none';
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<span>✨</span><span>AI解説</span>';
+    btn.innerHTML = '<span>✨</span><span>AI分析</span>';
   }
 }
 
 function streamRender(buf, parsed) {
-  const mM = buf.match(/"meaning"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-  const tM = buf.match(/"talk"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-  const cM = buf.match(/"category"\s*:\s*"([^"]+)"/);
-  const iM = buf.match(/"icon"\s*:\s*"([^"]+)"/);
-  if (mM) { const t=unesc(mM[1]); if(t!==parsed.meaning){ parsed.meaning=t; document.getElementById('aiMeaning').innerHTML=esc(t)+'<span class="cursor"></span>'; } }
-  if (tM) { const t=unesc(tM[1]); if(t!==parsed.talk){   parsed.talk=t;    document.getElementById('aiTalk').innerHTML   =esc(t)+'<span class="cursor"></span>'; } }
-  if (cM && cM[1]!==parsed.category) { parsed.category=cM[1]; document.getElementById('aiCardCat').textContent=cM[1]; }
-  if (iM && iM[1]!==parsed.icon)     { parsed.icon=iM[1];     document.getElementById('aiCardIcon').textContent=iM[1]; }
+  const fields = [
+    { key:'brand',      id:'aiCardBrand',    type:'text' },
+    { key:'generic',    id:'aiCardGeneric',  type:'text' },
+    { key:'company',    id:'aiCardCompany',  type:'text' },
+    { key:'category',   id:'aiCardCategory', type:'text' },
+    { key:'icon',       id:'aiCardIcon',     type:'text' },
+    { key:'overview',   id:'aiOverview',     type:'cursor' },
+    { key:'strategy',   id:'aiStrategy',     type:'cursor' },
+    { key:'challenges', id:'aiChallenges',   type:'cursor' },
+    { key:'mrTalk',     id:'aiMrTalk',       type:'cursor' },
+  ];
+  fields.forEach(f => {
+    const m = buf.match(new RegExp(`"${f.key}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"`));
+    if (m) {
+      const val = unesc(m[1]);
+      if (val !== parsed[f.key]) {
+        parsed[f.key] = val;
+        const el = document.getElementById(f.id);
+        if (el) el.innerHTML = f.type === 'cursor' ? esc(val) + '<span class="cursor"></span>' : esc(val);
+      }
+    }
+  });
 }
 
 function finalRender(buf, parsed) {
@@ -659,17 +696,34 @@ function finalRender(buf, parsed) {
     const clean = buf.trim().replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();
     Object.assign(parsed, JSON.parse(clean));
   } catch {}
-  document.getElementById('aiMeaning').textContent = parsed.meaning || '（解説を取得できませんでした）';
-  document.getElementById('aiTalk').textContent    = parsed.talk    || '（トーク例を取得できませんでした）';
-  document.getElementById('aiCardCat').textContent  = parsed.category || 'AI解説';
-  document.getElementById('aiCardIcon').textContent = parsed.icon     || '💊';
-  if (parsed.related?.length) {
-    document.getElementById('aiRelatedSec').style.display = 'block';
-    document.getElementById('aiRelated').innerHTML =
-      parsed.related.map(r=>`<span class="related-chip" data-term="${esc(r)}">${esc(r)}</span>`).join('');
-  } else {
-    document.getElementById('aiRelatedSec').style.display = 'none';
+
+  const set = (id, val, fallback='') => { const el=document.getElementById(id); if(el) el.textContent=val||fallback; };
+  set('aiCardBrand',    parsed.brand,    '—');
+  set('aiCardGeneric',  parsed.generic,  '');
+  set('aiCardCompany',  parsed.company,  '');
+  set('aiCardCategory', parsed.category, '');
+  const iconEl = document.getElementById('aiCardIcon');
+  if (iconEl) iconEl.textContent = parsed.icon || '💊';
+  set('aiOverview',   parsed.overview,   '（取得できませんでした）');
+  set('aiStrategy',   parsed.strategy,   '（取得できませんでした）');
+  set('aiChallenges', parsed.challenges, '（取得できませんでした）');
+  set('aiMrTalk',     parsed.mrTalk,     '（取得できませんでした）');
+
+  // 競合情報
+  const compEl = document.getElementById('aiCompetitors');
+  if (compEl) {
+    if (parsed.competitors?.length) {
+      compEl.innerHTML = parsed.competitors.map(c => `
+        <div class="competitor-item">
+          <div class="competitor-name">${esc(c.name||'')}</div>
+          <div class="competitor-company">${esc(c.company||'')}</div>
+          <div class="competitor-point">${esc(c.point||'')}</div>
+        </div>`).join('');
+    } else {
+      compEl.innerHTML = '<div class="competitor-item"><div class="competitor-point">競合情報を取得できませんでした</div></div>';
+    }
   }
+
   document.getElementById('refsList').innerHTML = '';
   document.getElementById('refsLoading').style.display = 'flex';
 }
@@ -682,18 +736,27 @@ async function fetchReferences(term) {
   const listEl    = document.getElementById('refsList');
   loadingEl.style.display = 'flex';
   listEl.innerHTML = '';
-
   try {
     const resp = await fetch('/api/references', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ term })
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ term })
     });
     const data = await resp.json();
     loadingEl.style.display = 'none';
-
     const items = [];
 
+    // PMDA リンク（常に表示）
+    if (data.pmda) {
+      items.push(`
+        <div class="ref-item">
+          <a href="${esc(data.pmda)}" target="_blank" rel="noopener noreferrer">
+            <span class="ref-badge pmda">📋 PMDA 添付文書検索</span>
+            <div class="ref-title">${esc(term)} — PMDA医薬品検索</div>
+            <div class="ref-url">🔗 ${esc(data.pmda)}</div>
+          </a>
+        </div>`);
+    }
+
+    // PubMed論文
     if (data.papers?.length) {
       data.papers.forEach(p => {
         const titleJaHtml = p.titleJa ? `<div class="ref-title-ja">🇯🇵 ${esc(p.titleJa)}</div>` : '';
@@ -703,16 +766,17 @@ async function fetchReferences(term) {
               <span class="ref-badge pubmed">📄 PubMed</span>
               <div class="ref-title">${esc(p.title)}</div>
               ${titleJaHtml}
-              <div class="ref-meta">${esc(p.authors)}${p.authors && p.year ? ' · ' : ''}${esc(p.year)}${p.journal ? ' · ' + esc(p.journal) : ''}</div>
+              <div class="ref-meta">${esc(p.authors)}${p.authors&&p.year?' · ':''}${esc(p.year)}${p.journal?' · '+esc(p.journal):''}</div>
               <div class="ref-url">🔗 ${esc(p.url)}</div>
             </a>
           </div>`);
       });
     }
 
+    // Wikipedia
     if (data.wiki) {
-      const langLabel = data.wiki.lang === 'ja' ? '🌐 Wikipedia（日本語）' : '🌐 Wikipedia（English）';
-      const badgeCls  = data.wiki.lang === 'ja' ? 'wiki-ja' : 'wiki-en';
+      const langLabel = data.wiki.lang==='ja' ? '🌐 Wikipedia（日本語）' : '🌐 Wikipedia（English）';
+      const badgeCls  = data.wiki.lang==='ja' ? 'wiki-ja' : 'wiki-en';
       items.push(`
         <div class="ref-item">
           <a href="${esc(data.wiki.url)}" target="_blank" rel="noopener noreferrer">
@@ -726,44 +790,46 @@ async function fetchReferences(term) {
     listEl.innerHTML = items.length
       ? items.join('')
       : '<p style="font-size:.82rem;color:var(--gray-600);padding:6px 0;">関連する文献が見つかりませんでした。</p>';
-
   } catch {
     document.getElementById('refsLoading').style.display = 'none';
-    document.getElementById('refsList').innerHTML =
-      '<p style="font-size:.82rem;color:var(--gray-600);padding:6px 0;">文献取得中にエラーが発生しました。</p>';
+    document.getElementById('refsList').innerHTML = '<p style="font-size:.82rem;color:var(--gray-600);padding:6px 0;">文献取得中にエラーが発生しました。</p>';
   }
 }
 
 // ============================================================
-//  Sample cards
+//  Sample Cards
 // ============================================================
-let currentCat = 'all';
-let currentKeyword = '';
+let currentCat = 'all', currentKeyword = '';
 
 function renderCards() {
   const grid  = document.getElementById('cardsGrid');
   const noRes = document.getElementById('noResult');
   const count = document.getElementById('resultCount');
   const kw    = currentKeyword.trim().toLowerCase();
-  let list    = SAMPLES.filter(i => currentCat==='all' || i.category===currentCat);
+  let list    = SAMPLES.filter(i => currentCat==='all' || i.catKey===currentCat);
   if (kw) list = list.filter(i =>
-    i.term.toLowerCase().includes(kw) || i.meaning.toLowerCase().includes(kw) || i.talk.toLowerCase().includes(kw)
+    i.brand.toLowerCase().includes(kw) || i.generic.toLowerCase().includes(kw) ||
+    i.indication.toLowerCase().includes(kw) || i.strategy.toLowerCase().includes(kw)
   );
   if (!list.length) { grid.innerHTML=''; noRes.style.display='block'; count.textContent=''; return; }
   noRes.style.display = 'none';
   count.innerHTML = `<strong>${list.length}</strong> 件表示`;
   grid.innerHTML = list.map(item => {
-    const cc = getCatCls(item.category);
-    return `<div class="card" data-term="${esc(item.term)}">
+    const cc = getCatCls(item.catKey);
+    return `<div class="card" data-term="${esc(item.brand)}">
       <div class="card-header">
         <div class="card-icon cat-${cc}-icon">${item.icon}</div>
-        <div><div class="card-term">${highlight(item.term,kw)}</div><span class="card-cat cat-${cc}">${esc(item.category)}</span></div>
+        <div>
+          <div class="card-brand">${highlight(item.brand,kw)}</div>
+          <div class="card-generic">${highlight(item.generic,kw)}</div>
+          <span class="card-cat cat-${cc}">${esc(item.catKey)}</span>
+        </div>
       </div>
       <div class="card-body">
-        <div class="card-sec meaning">📖 意味・解説</div>
-        <p class="card-meaning">${highlight(item.meaning,kw)}</p>
-        <div class="card-sec talk">🗣 営業トーク例</div>
-        <div class="card-talk">${highlight(item.talk,kw)}</div>
+        <div class="card-sec strategy">📈 製品戦略</div>
+        <p class="card-text">${highlight(item.strategy,kw)}</p>
+        <div class="card-sec competitor">⚔️ 競合</div>
+        <div class="card-comp">${highlight(item.competitor,kw)}</div>
       </div>
     </div>`;
   }).join('');
@@ -773,30 +839,27 @@ function renderCards() {
 //  Events
 // ============================================================
 document.getElementById('searchBtn').addEventListener('click', () => doSearch(document.getElementById('searchInput').value));
-document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key==='Enter') doSearch(e.target.value); });
+document.getElementById('searchInput').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(e.target.value); });
 document.getElementById('hintRow').addEventListener('click', e => {
   const c = e.target.closest('.hint-chip');
-  if (!c) return;
+  if(!c) return;
   document.getElementById('searchInput').value = c.dataset.term;
   doSearch(c.dataset.term);
 });
 document.addEventListener('click', e => {
-  const rc = e.target.closest('.related-chip');
-  if (rc) { document.getElementById('searchInput').value = rc.dataset.term; doSearch(rc.dataset.term); return; }
   const card = e.target.closest('.card[data-term]');
-  if (card) { document.getElementById('searchInput').value = card.dataset.term; doSearch(card.dataset.term); }
+  if(card){ document.getElementById('searchInput').value=card.dataset.term; doSearch(card.dataset.term); }
 });
 document.getElementById('filterBar').addEventListener('click', e => {
   const b = e.target.closest('.filter-btn');
-  if (!b) return;
-  document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+  if(!b) return;
+  document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
   currentCat = b.dataset.cat;
   renderCards();
 });
 document.getElementById('sampleSearch').addEventListener('input', e => {
-  currentKeyword = e.target.value;
-  renderCards();
+  currentKeyword = e.target.value; renderCards();
 });
 
 // ============================================================
