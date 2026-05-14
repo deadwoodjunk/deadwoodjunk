@@ -1,163 +1,268 @@
-"""Excelを投げ込んだら数式を自動設定してくれるStreamlitアプリ。"""
+"""GMP監査ロールプレイ訓練アプリ（Streamlit）。
+
+Claudeが被監査者を演じ、ユーザーが監査人として面談を行う。所見を記録し、
+面談終了時にAIトレーナーから総合的な講評を受ける。
+"""
 from __future__ import annotations
 
-import hashlib
-import io
 import os
 
 import anthropic
 import streamlit as st
-from openpyxl import load_workbook
 
-from excel_agent import (
-    apply_insertions,
-    describe_workbook,
-    generate_formula_plan,
+from gmp_audit_agent import (
+    DIFFICULTY_LEVELS,
+    SCENARIOS,
+    evaluate_audit,
+    get_scenario,
+    respond_as_auditee,
 )
 
-st.set_page_config(page_title="Excel関数自動設定", page_icon="📊", layout="wide")
+st.set_page_config(page_title="GMP監査ロールプレイ訓練", page_icon="🏭", layout="wide")
 
-st.title("📊 Excel関数自動設定アプリ")
+st.title("🏭 GMP監査ロールプレイ訓練アプリ")
 st.caption(
-    "Excelをアップロードして自然言語で指示すると、Claudeが構造を解析して適切な数式を提案・挿入します。"
+    "Claudeが被監査者（auditee）を演じます。あなたは監査人として面談を行い、"
+    "気付いた事項を所見として記録し、面談終了後にAIトレーナーから講評を受けます。"
 )
 
+
+def init_session() -> None:
+    st.session_state.setdefault("messages", [])
+    st.session_state.setdefault("findings", [])
+    st.session_state.setdefault("evaluation", None)
+    st.session_state.setdefault("scenario_id", SCENARIOS[0].id)
+    st.session_state.setdefault("difficulty", "中級")
+
+
+def reset_session(*, keep_settings: bool = True) -> None:
+    st.session_state["messages"] = []
+    st.session_state["findings"] = []
+    st.session_state["evaluation"] = None
+    if not keep_settings:
+        st.session_state["scenario_id"] = SCENARIOS[0].id
+        st.session_state["difficulty"] = "中級"
+
+
+init_session()
+
+# ----- サイドバー：設定 -----
 with st.sidebar:
-    st.header("設定")
+    st.header("⚙️ 設定")
     api_key = st.text_input(
         "Anthropic API Key",
         type="password",
         value=os.environ.get("ANTHROPIC_API_KEY", ""),
-        help="https://console.anthropic.com/ で取得できます。",
+        help="https://console.anthropic.com/ で発行できます。",
     )
+
     st.markdown("---")
-    st.markdown("**モデル**: `claude-opus-4-7`")
-    st.markdown("**思考モード**: adaptive thinking")
-    st.markdown("**出力形式**: structured JSON")
+    st.subheader("シナリオ選択")
 
-uploaded = st.file_uploader("Excelファイル (.xlsx) をアップロード", type=["xlsx"])
-
-if uploaded is not None:
-    file_bytes = uploaded.getvalue()
-    file_hash = hashlib.md5(file_bytes).hexdigest()
-
-    if st.session_state.get("file_hash") != file_hash:
-        st.session_state["file_hash"] = file_hash
-        st.session_state["file_bytes"] = file_bytes
-        st.session_state.pop("plan", None)
-        st.session_state.pop("usage", None)
-
-    try:
-        wb_preview = load_workbook(io.BytesIO(file_bytes), data_only=False)
-    except Exception as e:
-        st.error(f"Excelの読み込みに失敗しました: {e}")
-        st.stop()
-
-    description = describe_workbook(wb_preview)
-
-    with st.expander("📋 検出されたワークブック構造", expanded=False):
-        st.code(description, language="text")
-
-    instruction = st.text_area(
-        "指示（自然言語）",
-        placeholder=(
-            "例: B列の売上を合計して最終行に出して、C列との比率をD列に入れて。\n"
-            "空欄なら自動で実用的な集計を提案します。"
-        ),
-        height=120,
-        key="instruction",
+    scenario_titles = {s.id: s.title for s in SCENARIOS}
+    current_index = list(scenario_titles.keys()).index(st.session_state["scenario_id"])
+    selected_id = st.selectbox(
+        "監査対象シナリオ",
+        options=list(scenario_titles.keys()),
+        format_func=lambda x: scenario_titles[x],
+        index=current_index,
+        label_visibility="collapsed",
     )
 
-    col_run, _ = st.columns([1, 4])
-    with col_run:
-        run = st.button(
-            "🤖 数式を生成",
-            type="primary",
-            disabled=not api_key,
-            use_container_width=True,
-        )
-    if not api_key:
-        st.warning("サイドバーで Anthropic API Key を設定してください。")
+    st.subheader("難易度")
+    difficulty = st.radio(
+        "被監査者の協力度",
+        options=list(DIFFICULTY_LEVELS.keys()),
+        index=list(DIFFICULTY_LEVELS.keys()).index(st.session_state["difficulty"]),
+        horizontal=True,
+        label_visibility="collapsed",
+    )
+    st.caption(DIFFICULTY_LEVELS[difficulty])
 
-    if run and api_key:
-        with st.spinner("Claudeが数式を考えています..."):
+    if (
+        selected_id != st.session_state["scenario_id"]
+        or difficulty != st.session_state["difficulty"]
+    ):
+        st.session_state["scenario_id"] = selected_id
+        st.session_state["difficulty"] = difficulty
+        reset_session(keep_settings=True)
+        st.rerun()
+
+    st.markdown("---")
+    if st.button("🔄 セッションをリセット", use_container_width=True):
+        reset_session(keep_settings=True)
+        st.rerun()
+
+    st.markdown("---")
+    st.markdown("**モデル**：`claude-opus-4-7`")
+    st.caption("Anthropic Claude API（prompt caching 有効）")
+
+
+scenario = get_scenario(st.session_state["scenario_id"])
+
+# ----- シナリオ概要 -----
+with st.expander(
+    f"📋 シナリオブリーフィング：{scenario.title}",
+    expanded=not st.session_state["messages"],
+):
+    st.markdown(f"**概要**：{scenario.summary}")
+    st.markdown("**サイト情報**")
+    st.code(scenario.site_overview, language="text")
+    st.markdown(f"**面談相手**：{scenario.auditee_role}")
+    st.markdown("**推奨確認領域**（参考。すべてに触れる必要はありません）")
+    for f in scenario.suggested_focus:
+        st.markdown(f"- {f}")
+    st.caption(
+        "実際の監査では、書類レビュー → 面談 → 現場確認 → 締めくくり面談の流れですが、"
+        "本訓練は面談部分にフォーカスしています。"
+    )
+
+# ----- 2カラム：チャット ＋ 所見 -----
+col_chat, col_findings = st.columns([3, 2], gap="large")
+
+with col_chat:
+    st.subheader("💬 監査面談")
+
+    chat_container = st.container(height=520, border=True)
+    with chat_container:
+        if not st.session_state["messages"]:
+            st.info(
+                "下の入力欄から面談を開始してください。"
+                "例：「本日はお時間いただきありがとうございます。早速ですが、"
+                "御社の逸脱管理SOPの概要をご説明いただけますか。」"
+            )
+        for msg in st.session_state["messages"]:
+            avatar = "🧑‍💼" if msg["role"] == "user" else "🏭"
+            with st.chat_message(msg["role"], avatar=avatar):
+                st.markdown(msg["content"])
+
+with col_findings:
+    st.subheader("📝 所見（Findings）")
+    st.caption(
+        "気付いた事項を「観察事実 → GMP要件との乖離 → リスク」の順で簡潔に。"
+        "最後の講評で品質が評価されます。"
+    )
+
+    with st.form("add_finding_form", clear_on_submit=True):
+        category = st.selectbox(
+            "区分",
+            [
+                "Critical（重大）",
+                "Major（重要）",
+                "Minor（軽微）",
+                "Observation（観察事項）",
+            ],
+            index=2,
+        )
+        finding_text = st.text_area(
+            "所見内容",
+            placeholder=(
+                "例：CAPA有効性確認の実施記録について、QA部長は口頭で「実施している」"
+                "と回答したが、具体的な評価指標および記録の所在を提示できなかった。"
+                "PIC/S GMP第1章で要求されるCAPAの effectiveness の体系的検証が"
+                "実装されていない疑いがあり、是正措置の信頼性に関わる。"
+            ),
+            height=140,
+            label_visibility="collapsed",
+        )
+        submitted = st.form_submit_button(
+            "➕ 所見を追加", use_container_width=True, type="secondary"
+        )
+        if submitted and finding_text.strip():
+            st.session_state["findings"].append(
+                {"category": category, "text": finding_text.strip()}
+            )
+            st.rerun()
+
+    findings_box = st.container(height=300, border=True)
+    with findings_box:
+        if st.session_state["findings"]:
+            for i, f in enumerate(st.session_state["findings"]):
+                cols = st.columns([5, 1])
+                cols[0].markdown(f"**{i + 1}. [{f['category']}]**")
+                if cols[1].button("🗑", key=f"del_{i}", help="この所見を削除"):
+                    st.session_state["findings"].pop(i)
+                    st.rerun()
+                st.markdown(f["text"])
+                st.divider()
+        else:
+            st.caption("まだ所見はありません。")
+
+
+# ----- チャット入力（最下部にピン留めされる） -----
+if st.session_state["evaluation"] is None:
+    prompt = st.chat_input(
+        "監査人として質問・依頼を入力（例：「逸脱判定基準のSOPを見せてください」）"
+    )
+    if prompt:
+        if not api_key:
+            st.error("サイドバーで Anthropic API Key を設定してください。")
+            st.stop()
+
+        st.session_state["messages"].append({"role": "user", "content": prompt})
+
+        try:
             client = anthropic.Anthropic(api_key=api_key)
-            try:
-                plan, usage = generate_formula_plan(client, description, instruction)
-            except anthropic.APIStatusError as e:
-                st.error(f"API エラー ({e.status_code}): {e.message}")
-                st.stop()
-            except Exception as e:
-                st.error(f"予期せぬエラー: {e}")
-                st.stop()
+            with st.spinner("被監査者が考えています..."):
+                reply, _ = respond_as_auditee(
+                    client,
+                    scenario,
+                    st.session_state["difficulty"],
+                    st.session_state["messages"],
+                )
+        except anthropic.APIStatusError as e:
+            st.session_state["messages"].pop()
+            st.error(f"APIエラー（{e.status_code}）：{e.message}")
+            st.stop()
+        except Exception as e:
+            st.session_state["messages"].pop()
+            st.error(f"予期せぬエラー：{e}")
+            st.stop()
 
-        st.session_state["plan"] = plan
-        st.session_state["usage"] = usage
+        st.session_state["messages"].append({"role": "assistant", "content": reply})
+        st.rerun()
 
-if "plan" in st.session_state:
-    plan = st.session_state["plan"]
-    usage = st.session_state["usage"]
 
-    st.markdown("---")
-    st.subheader("🧠 提案された数式")
+# ----- 監査終了 → 講評 -----
+st.markdown("---")
 
-    summary = plan.get("summary", "").strip()
-    if summary:
-        st.info(summary)
-
-    insertions = plan.get("insertions", [])
-    if insertions:
-        st.dataframe(
-            insertions,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "sheet": st.column_config.TextColumn("シート", width="small"),
-                "cell": st.column_config.TextColumn("セル", width="small"),
-                "formula": st.column_config.TextColumn("数式", width="large"),
-                "label": st.column_config.TextColumn("説明", width="medium"),
-            },
-        )
-    else:
-        st.warning("提案された数式がありません。指示を変えて再試行してください。")
-
-    col_apply, _ = st.columns([1, 4])
-    with col_apply:
-        apply_btn = st.button(
-            "✅ 適用してダウンロード",
+if st.session_state["evaluation"] is None:
+    end_col, _ = st.columns([2, 5])
+    with end_col:
+        end_btn = st.button(
+            "🎯 監査を終了して講評を受ける",
             type="primary",
-            disabled=not insertions,
+            disabled=not st.session_state["messages"] or not api_key,
             use_container_width=True,
         )
+    if not st.session_state["messages"]:
+        st.caption("まずは面談を進めてから講評に進んでください。")
 
-    with st.expander("使用トークン", expanded=False):
-        st.json(
-            {
-                "input_tokens": usage.input_tokens,
-                "output_tokens": usage.output_tokens,
-                "cache_creation_input_tokens": getattr(usage, "cache_creation_input_tokens", 0),
-                "cache_read_input_tokens": getattr(usage, "cache_read_input_tokens", 0),
-            }
-        )
-
-    if apply_btn and insertions:
-        wb = load_workbook(io.BytesIO(st.session_state["file_bytes"]), data_only=False)
-        warnings = apply_insertions(wb, insertions)
-        out = io.BytesIO()
-        wb.save(out)
-        out.seek(0)
-
-        for w in warnings:
-            st.warning(w)
-
-        st.success(f"{len(insertions) - len(warnings)} 個の数式を適用しました。")
-        st.download_button(
-            "📥 結果をダウンロード",
-            data=out.getvalue(),
-            file_name="output_with_formulas.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            type="primary",
-        )
+    if end_btn:
+        try:
+            client = anthropic.Anthropic(api_key=api_key)
+            with st.spinner("AIトレーナーが講評を作成しています..."):
+                evaluation, _ = evaluate_audit(
+                    client,
+                    scenario,
+                    st.session_state["messages"],
+                    st.session_state["findings"],
+                )
+        except anthropic.APIStatusError as e:
+            st.error(f"APIエラー（{e.status_code}）：{e.message}")
+            st.stop()
+        except Exception as e:
+            st.error(f"評価生成エラー：{e}")
+            st.stop()
+        st.session_state["evaluation"] = evaluation
+        st.rerun()
 else:
-    if uploaded is None:
-        st.info("👆 上のフォームから Excel ファイルをアップロードしてください。")
+    st.subheader("🎓 講評（AIトレーナーより）")
+    with st.container(border=True):
+        st.markdown(st.session_state["evaluation"])
+
+    retry_col, _ = st.columns([2, 5])
+    with retry_col:
+        if st.button("🔁 もう一度挑戦する", type="primary", use_container_width=True):
+            reset_session(keep_settings=True)
+            st.rerun()
