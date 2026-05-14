@@ -1,0 +1,3 @@
+streamlit>=1.30
+anthropic>=0.92
+openpyxl>=3.1
