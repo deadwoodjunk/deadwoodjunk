@@ -22,6 +22,27 @@ st.caption(
     "Excelをアップロードして自然言語で指示すると、Claudeが構造を解析して適切な数式を提案・挿入します。"
 )
 
+PRESETS: dict[str, str] = {
+    "（プリセットなし）": "",
+    "🛍 メルカリ売上計算": (
+        "これはメルカリの売上記録です。販売手数料は販売価格の10%、送料は出品者（自分）負担、"
+        "という前提で以下の集計をExcel数式で提案してください。\n"
+        "列名はワークブック内のヘッダから推測してください（販売価格は『価格』『売値』『販売額』『取引価格』など、"
+        "送料は『送料』『配送料』など、原価は『原価』『仕入』『仕入値』など）。該当列が見つからない数式はスキップ可。\n\n"
+        "## 行ごとの計算列（データ範囲の右側に追加）\n"
+        "- 販売手数料: 販売価格 × 10%（ROUNDDOWNで円未満切り捨て）\n"
+        "- 利益: 販売価格 - 販売手数料 - 送料 - 原価\n"
+        "- 利益率: 利益 / 販売価格（パーセント表記でなく小数でよい）\n\n"
+        "## 全体集計（データブロックの下またはサマリ位置）\n"
+        "- 売上総額（販売価格の合計）\n"
+        "- 手数料合計、送料合計、原価合計、利益合計\n"
+        "- 取引件数（COUNTA / COUNTで）\n"
+        "- 平均販売価格、平均利益\n"
+        "- 最高販売額、最低販売額\n"
+        "- 全体利益率（利益合計 / 売上総額）\n"
+    ),
+}
+
 with st.sidebar:
     st.header("設定")
     api_key = st.text_input(
@@ -58,13 +79,26 @@ if uploaded is not None:
     with st.expander("📋 検出されたワークブック構造", expanded=False):
         st.code(description, language="text")
 
+    def _apply_preset() -> None:
+        choice = st.session_state.get("preset_choice", "")
+        if choice in PRESETS and PRESETS[choice]:
+            st.session_state["instruction"] = PRESETS[choice]
+
+    st.selectbox(
+        "プリセット指示",
+        options=list(PRESETS.keys()),
+        key="preset_choice",
+        on_change=_apply_preset,
+        help="選ぶと下のテキストエリアに定型指示が入ります。自由に編集できます。",
+    )
+
     instruction = st.text_area(
         "指示（自然言語）",
         placeholder=(
             "例: B列の売上を合計して最終行に出して、C列との比率をD列に入れて。\n"
             "空欄なら自動で実用的な集計を提案します。"
         ),
-        height=120,
+        height=180,
         key="instruction",
     )
 
